@@ -1,0 +1,17 @@
+scheme,label,category
+greenbyte,Full Performance,full_performance
+greenbyte,Partial Performance,partial_performance
+greenbyte,Technical Standby,technical_standby
+greenbyte,Out of Environmental Specification,environmental
+greenbyte,Requested Shutdown,requested
+greenbyte,Out of Electrical Specification,electrical
+greenbyte,Scheduled Maintenance,scheduled_maintenance
+greenbyte,Planned Corrective Action,planned_corrective
+greenbyte,Forced outage,forced_outage
+greenbyte,Communication,no_info
+care,0,full_performance
+care,1,partial_performance
+care,2,technical_standby
+care,3,scheduled_maintenance
+care,4,forced_outage
+care,5,no_info
