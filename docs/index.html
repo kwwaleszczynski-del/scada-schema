@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scada-schema</title>
+<meta name="description" content="An open data standard for wind and PV SCADA: one schema, loaders for five open datasets, quality control with an HTML report, IEC 61400-26 state mapping and converters to wind-up, OpenOA and pvlib with parity checks.">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"
+  integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous"></script>
+<script src="data.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --border: rgba(11,11,11,0.10); --accent: #2a78d6;
+  --up: #2e8b57; --down: #c0504d; --warn: #b8860b; --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --border: rgba(255,255,255,0.10); --accent: #3987e5;
+    --up: #3fae74; --down: #d9625e; --warn: #d4a017; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+h2.section { margin: 36px 0 0; font-size: 20px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+p { margin: 4px 0 12px; color: var(--ink2); }
+a { color: var(--accent); }
+code { font-size: 0.9em; }
+.lead { max-width: 900px; }
+.note { font-size: 12.5px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.tile .label { font-size: 13px; color: var(--ink2); }
+.tile .value { font-size: 24px; font-weight: 600; margin: 2px 0; }
+.tile .sub { font-size: 12px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; margin-top: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 14px 8px; min-width: 0; }
+.card.wide { grid-column: 1 / -1; }
+.chart { width: 100%; height: 340px; }
+.chart.tall { height: 520px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 4px; font-size: 13px; color: var(--ink2); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { background: transparent; color: var(--ink2); border: 0; padding: 4px 10px; font: inherit; cursor: pointer; }
+.seg button.on { background: var(--accent); color: #fff; }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--grid); text-align: right; vertical-align: top; }
+th { color: var(--ink2); font-weight: 600; }
+th:first-child, td:first-child, td.l, th.l { text-align: left; }
+.ok { color: var(--up); } .fail { color: var(--down); } .warn { color: var(--warn); }
+@media (max-width: 520px) { .grid { grid-template-columns: 1fr; } .chart.tall { height: 460px; } .tile .value { font-size: 20px; } }
+</style>
+</head>
+<body>
+<main>
+<h1>scada-schema</h1>
+<p class="lead">Wind and PV SCADA data arrive in as many layouts as there are operators: columns named after a vendor's tag list, power in
+hectowatts or watts, time in local time or at the end of the interval, a status code that only the manual explains. This project fixes one
+schema, reads five open datasets into it from their original files, checks the data, maps the status codes to IEC 61400-26 categories and
+hands the table to wind-up, OpenOA and pvlib, with a check that the tools give the same result either way.
+<a href="https://github.com/kwwaleszczynski-del/scada-schema">Code</a>,
+<a href="https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md">specification</a>.</p>
+<div class="tiles" id="tiles"></div>
+
+<h2 class="section">The datasets and what the checks found</h2>
+<p class="lead">Every row below was loaded from the dataset's original files, validated against the schema and checked; the link opens the
+full HTML quality report of that table.</p>
+<div class="grid">
+  <div class="card wide"><div class="wrap"><table id="datasets"></table></div></div>
+  <div class="card wide"><h3>Findings by severity</h3><div id="sev" class="chart tall"></div>
+    <p class="note">A finding is one check, one signal and one device. It describes the data, not the sensor: a flat line of zeros is normal at night.</p></div>
+</div>
+
+<h2 class="section">A unit change inside a record</h2>
+<p class="lead" id="unitText"></p>
+<div class="grid">
+  <div class="card wide"><h3>PVDAQ system 34: AC power over plane-of-array irradiance, daily median (log10)</h3><div id="unit" class="chart tall"></div></div>
+</div>
+
+<h2 class="section">North offsets between turbines</h2>
+<p class="lead" id="northText"></p>
+<div class="grid">
+  <div class="card wide"><h3 id="northTitle"></h3><div id="north" class="chart tall"></div></div>
+</div>
+
+<h2 class="section">Quality checks per dataset</h2>
+<div class="grid">
+  <div class="card wide"><h3>Devices with at least one finding, by check</h3><div class="wrap"><table id="checks"></table></div></div>
+</div>
+
+<h2 class="section">IEC 61400-26 mapping</h2>
+<p class="lead">The code tables translate a controller's status codes into the ten information categories. Where the operator also labels
+every stop, the table can be compared with the label (the Senvion table was written from the same logs, so that is a consistency check).</p>
+<div class="grid"><div class="card wide"><div class="wrap"><table id="iec"></table></div></div></div>
+
+<h2 class="section">Converters and parity</h2>
+<p class="lead">The same source file goes into the target tool twice: through this library and by hand with plain pandas and the tool's own column
+names. The tool's own functions then run on both inputs.</p>
+<div class="grid"><div class="card wide"><div class="wrap"><table id="parity"></table></div><p class="note" id="parityNote"></p></div></div>
+
+<h2 class="section">The signals</h2>
+<div class="controls"><span>Profile</span><div class="seg" id="profSeg"><button data-p="wind" class="on">wind</button><button data-p="pv">pv</button></div></div>
+<div class="grid"><div class="card wide"><div class="wrap"><table id="signals"></table></div></div></div>
+<p class="note">Working material. The schema is a proposal, not a standard of any body; the IEC 61400-26 mapping is written from the public code texts of the
+open datasets and is not an OEM document or a reading of the standard. Data: Kelmarsh, Penmanshiel (Cubico, CC BY 4.0), Hill of Towie (RES, CC BY 4.0),
+CARE to Compare (CC BY-SA 4.0), NREL PVDAQ (CC BY 4.0).</p>
+</main>
+<script>
+const D = window.DATA;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const f0 = (v, d=0) => v == null || isNaN(v) ? "-" : Number(v).toLocaleString("en-US", {maximumFractionDigits:d, minimumFractionDigits:d});
+const pc = (v, d=1) => v == null || isNaN(v) ? "-" : (100 * v).toFixed(d) + " %";
+const sci = v => v == null ? "-" : Number(v).toExponential(1);
+const $ = id => document.getElementById(id);
+const layout = extra => Object.assign({margin:{t:20,r:12,b:50,l:50}, paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)",
+  font:{color:css("--ink"), size:12}, xaxis:{gridcolor:css("--grid"), zeroline:false}, yaxis:{gridcolor:css("--grid"), zeroline:false},
+  legend:{orientation:"h", y:-0.22}}, extra || {});
+const CFG = {displayModeBar:false, responsive:true};
+const ds = n => D.datasets.find(d => d.name === n);
+
+(function tiles() {
+  const t = D.totals, s = D.schema;
+  const items = [["Datasets", t.datasets, `${t.sources} sources, ${f0(t.rows / 1e6, 1)} million rows`],
+    ["Schema valid", `${t.schema_valid} of ${t.datasets}`, `${s.signals} signals, ${s.wind_signals} wind and ${s.pv_signals} PV`],
+    ["Quality checks", s.checks, "flat lines to units"],
+    ["IEC categories", s.iec_categories, `${f0(Object.values(s.code_tables).reduce((a, b) => a + b, 0))} mapped codes`]];
+  const p = D.parity;
+  if (p && p.windup) items.push(["wind-up parity", sci(p.windup.filtered_max_abs_diff), "largest difference after wind-up's filters"]);
+  $("tiles").innerHTML = items.map(i => `<div class="tile"><div class="label">${esc(i[0])}</div><div class="value">${esc(i[1])}</div><div class="sub">${esc(i[2])}</div></div>`).join("");
+})();
+
+(function datasets() {
+  const head = ["Dataset", "Source (licence)", "Profile", "Interval", "Rows", "Devices", "Signals", "Schema", "Errors", "Warnings", "Info"];
+  const rows = D.datasets.map(d => `<tr><td><a href="qc/${esc(d.name)}.html">${esc(d.name)}</a></td><td class="l">${esc(d.source)} (${esc(d.license)})</td>
+    <td>${esc(d.profile)}</td><td>${esc(d.interval)}</td><td>${f0(d.rows)}</td><td>${d.devices}</td><td>${d.signals} + ${d.stat_columns}</td>
+    <td class="${d.validation.ok ? "ok" : "fail"}">${d.validation.ok ? "valid" : "invalid"}</td><td>${d.qc.counts.error}</td><td>${d.qc.counts.warning}</td><td>${d.qc.counts.info}</td></tr>`);
+  $("datasets").innerHTML = `<thead><tr>${head.map((h, i) => `<th class="${i === 1 ? "l" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
+  const names = D.datasets.map(d => d.name.replace("_units", "").replace("hill_of_towie", "hot").replace("penmanshiel", "penman.").replace("_raw", " raw"));
+  const mk = (k, name, color) => ({type:"bar", orientation:"h", name, y:names, x:D.datasets.map(d => d.qc.counts[k]), marker:{color}});
+  Plotly.newPlot("sev", [mk("error", "error", css("--down")), mk("warning", "warning", css("--warn")), mk("info", "info", css("--s1"))],
+    layout({barmode:"stack", margin:{t:10,r:10,b:60,l:80}, yaxis:{autorange:"reversed", automargin:true, gridcolor:css("--grid")}, xaxis:{title:"findings", gridcolor:css("--grid")}}), CFG);
+})();
+
+(function units() {
+  const f = D.figures.pvdaq_units, raw = ds("pvdaq_34_raw_units").qc.highlights.unit_switch[0];
+  $("unitText").innerHTML = `Until 2018-08-04 the AC and DC power channels of the PVDAQ rooftop systems are in hectowatts, afterwards in watts. Read
+    as hectowatts throughout, the level of power against irradiance jumps by a factor of ${f0(raw.factor)} on ${esc(raw.date)}, and the
+    <code>units</code> check finds it. The loader finds the same switch from the data and corrects it; the check on the corrected table finds ${ds("pvdaq_34").qc.highlights.unit_switch ? "something" : "nothing"}.`;
+  const tr = (k, name, color) => ({type:"scatter", mode:"lines", name, x:f[k].days, y:f[k].log10_ratio, line:{color, width:2}});
+  Plotly.newPlot("unit", [tr("hectowatts_throughout", "read as hectowatts throughout", css("--s2")), tr("corrected", "corrected by the loader", css("--s1"))],
+    layout({yaxis:{title:"log10 (kW per W/m2)", gridcolor:css("--grid")}, xaxis:{gridcolor:css("--grid")}, margin:{t:10,r:10,b:70,l:55}}), CFG);
+})();
+
+(function north() {
+  const d = ds("hill_of_towie_2021"), h = d.qc.highlights.north_offsets, o = h.offsets_deg, ks = Object.keys(o);
+  $("northTitle").textContent = `Hill of Towie 2021: nacelle position against the fleet mean direction, degrees`;
+  $("northText").innerHTML = `Turbines of one farm see the same wind, so their nacelle (or wind direction) readings must agree on average. Across ${h.turbines}
+    turbines ${h.flagged.length} are more than 10 degrees off the fleet mean; the largest, ${esc(h.max_abs_device)}, by ${esc(h.max_abs_deg)} degrees. Wind-up and similar tools correct such a
+    north offset; this check shows where it is.`;
+  Plotly.newPlot("north", [{type:"bar", orientation:"h", y:ks, x:ks.map(k => o[k]), marker:{color:ks.map(k => Math.abs(o[k]) > 10 ? css("--warn") : css("--s1"))}}],
+    layout({yaxis:{autorange:"reversed", automargin:true, gridcolor:css("--grid")}, xaxis:{title:"offset (deg)", gridcolor:css("--grid")}, margin:{t:10,r:10,b:50,l:40}}), CFG);
+})();
+
+(function checks() {
+  const cs = D.datasets[0].qc.checks_run;
+  const head = `<thead><tr><th class="l">Check</th>${D.datasets.map(d => `<th>${esc(d.name)}</th>`).join("")}</tr></thead>`;
+  const rows = cs.map(c => `<tr><td><code>${esc(c)}</code></td>${D.datasets.map(d => {
+    if (c in d.qc.checks_skipped) return `<td class="note" title="${esc(d.qc.checks_skipped[c])}">skipped</td>`;
+    const b = d.qc.by_check[c]; return `<td class="${b && b.findings ? (b.worst === "error" ? "fail" : b.worst === "warning" ? "warn" : "") : ""}">${b ? b.devices : 0}</td>`;
+  }).join("")}</tr>`);
+  $("checks").innerHTML = head + `<tbody>${rows.join("")}</tbody>`;
+})();
+
+(function iec() {
+  const head = ["Dataset", "Code table", "Events", "Events with a code in the table", "Compared with operator", "Agreement", "Availability (IEC op. / OEM style)"];
+  const rows = D.iec.map(i => `<tr><td>${esc(i.name)}</td><td class="l"><code>${esc(i.table)}</code></td><td>${f0(i.events)}</td><td>${pc(i.events_in_table)}</td>
+    <td>${i.compared_stop_events != null ? f0(i.compared_stop_events) : "-"}</td><td>${i.agreement_with_operator != null ? pc(i.agreement_with_operator) : "no operator category"}</td>
+    <td>${i.time_availability_iec_operational != null ? pc(i.time_availability_iec_operational) + " / " + pc(i.time_availability_oem_warranty) : "not computed"}</td></tr>`);
+  $("iec").innerHTML = `<thead><tr>${head.map((h, i) => `<th class="${i === 1 ? "l" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
+})();
+
+(function parity() {
+  const p = D.parity; if (!p || !p.windup) return;
+  const w = p.windup, o = p.openoa, v = p.pvlib;
+  const r = (a, b, c, d) => `<tr><td class="l">${a}</td><td class="l">${b}</td><td class="l">${c}</td><td>${d}</td></tr>`;
+  $("parity").innerHTML = `<thead><tr><th class="l">Target</th><th class="l">Input</th><th class="l">Runs on both inputs</th><th>Largest difference</th></tr></thead><tbody>
+    ${r("wind-up", `${esc(w.dataset)}, ${f0(w.rows)} rows`, "the SCADA frame", sci(w.input_max_abs_diff))}
+    ${r("", "", `<code>filter_scada_df</code> (${pc(w.removed_share)} of power values removed; same rows ${w.filtered_same_missing ? "removed on both" : "DIFFER"})`, sci(w.filtered_max_abs_diff))}
+    ${r("", "", "power curve function", sci(w.power_curve_max_abs_diff_kw) + " kW")}
+    ${r("OpenOA", `${esc(o.dataset)}, ${f0(o.rows)} rows`, "<code>PlantData.scada</code>", sci(o.scada_max_abs_diff))}
+    ${r("", "", "<code>power_curve.IEC</code>", sci(o.iec_curve_max_abs_diff_kw) + " kW")}
+    ${r("pvlib", `${esc(v.dataset)}, ${f0(v.intervals)} intervals`, `PVWatts ModelChain, ${f0(v.pdc0_kw, 1)} kW array`, sci(v.max_rel_diff) + " relative")}</tbody>`;
+  $("parityNote").textContent = `Differences of the order of 1e-7 relative come from the float32 columns of the schema. OpenOA's default power-curve bins start at 0 (centres 0.25, 0.75, ...);
+    with bins aligned to the IEC 61400-12-1 convention it agrees with res_asset_kpi to ${sci(o.aligned_bins_vs_res_asset_kpi_max_abs_diff_kw)} kW, with its default bins it differs by up to ${o.default_bins_vs_res_asset_kpi_max_pct_of_rated.toFixed(1)} % of rated power.`;
+})();
+
+(function signals() {
+  let prof = "wind";
+  function draw() {
+    const rows = D.signals.filter(s => s.profiles.includes(prof)).map(s => `<tr><td class="l"><code>${esc(s.name)}</code></td><td>${esc(s.unit || "-")}</td><td>${esc(s.kind)}</td>
+      <td class="l">${esc(s.devices.join(", "))}</td><td>${s.lo != null || s.hi != null ? (s.lo ?? "") + " to " + (s.hi ?? "") : ""}</td><td>${s.stats ? "yes" : ""}</td><td class="l">${esc(s.description)}</td></tr>`);
+    $("signals").innerHTML = `<thead><tr><th class="l">Signal</th><th>Unit</th><th>Kind</th><th class="l">Devices</th><th>Hard limits</th><th>min, max, std</th><th class="l">Meaning</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  }
+  $("profSeg").addEventListener("click", e => { if (e.target.dataset.p) { prof = e.target.dataset.p; [...$("profSeg").children].forEach(b => b.classList.toggle("on", b === e.target)); draw(); } });
+  draw();
+})();
+</script>
+</body>
+</html>
