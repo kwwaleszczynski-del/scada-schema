@@ -189,11 +189,14 @@
       }
      },
      "dst": {
-      "findings": 0
+      "findings": 0,
+      "transitions_hit": 0,
+      "transitions": 0
      },
      "gaps": {
       "devices_with_gaps": 0,
-      "missing_intervals": 0
+      "missing_intervals": 0,
+      "longest_episodes": []
      }
     }
    },
@@ -395,11 +398,14 @@
       }
      },
      "dst": {
-      "findings": 0
+      "findings": 0,
+      "transitions_hit": 0,
+      "transitions": 0
      },
      "gaps": {
       "devices_with_gaps": 0,
-      "missing_intervals": 0
+      "missing_intervals": 0,
+      "longest_episodes": []
      }
     }
    },
@@ -607,11 +613,40 @@
       }
      },
      "dst": {
-      "findings": 0
+      "findings": 0,
+      "transitions_hit": 0,
+      "transitions": 0
      },
      "gaps": {
       "devices_with_gaps": 21,
-      "missing_intervals": 12839
+      "missing_intervals": 12839,
+      "longest_episodes": [
+       [
+        "2021-05-07 09:10",
+        "2021-05-07 10:30",
+        8
+       ],
+       [
+        "2021-08-31 10:40",
+        "2021-08-31 14:30",
+        23
+       ],
+       [
+        "2021-09-14 15:00",
+        "2021-09-14 18:10",
+        19
+       ],
+       [
+        "2021-10-21 00:00",
+        "2021-10-21 13:10",
+        79
+       ],
+       [
+        "2021-10-21 15:00",
+        "2021-10-22 10:20",
+        116
+       ]
+      ]
      }
     }
    },
@@ -619,6 +654,185 @@
     "time stamps moved from the end to the start of the interval (-10 min)",
     "pitch: mean of blades A, B, C; v_ac and i_ac: mean of the three phases; t_gen_winding: mean of the windings 1U1, 1V1, 1W1",
     "shutdown_s: ShutdownDuration of the operator's file, seconds out of 600"
+   ]
+  },
+  {
+   "name": "la_haute_borne",
+   "source": "La Haute Borne wind farm data (ENGIE, copy shipped with OpenOA)",
+   "doi": null,
+   "license": "Etalab open licence (as stated by ENGIE, not re-verified)",
+   "profile": "wind",
+   "interval": "10min",
+   "source_timezone": "Europe/Paris",
+   "source_label": "start",
+   "args": {},
+   "rows": 420432,
+   "devices": 4,
+   "signals": 7,
+   "signal_names": [
+    "p_ac",
+    "wind_speed",
+    "wind_dir",
+    "wind_dir_rel",
+    "nacelle_dir",
+    "pitch",
+    "t_amb"
+   ],
+   "stat_columns": 0,
+   "first": "2014-01-01T00:00:00+00:00",
+   "last": "2015-12-31T23:50:00+00:00",
+   "events": 0,
+   "validation": {
+    "ok": true,
+    "errors": 0,
+    "warnings": 0,
+    "codes": []
+   },
+   "qc": {
+    "counts": {
+     "info": 18,
+     "warning": 11,
+     "error": 0
+    },
+    "checks_run": [
+     "duplicates",
+     "ordering",
+     "time_jumps",
+     "gaps",
+     "dst",
+     "missing_values",
+     "out_of_range",
+     "flatline",
+     "spikes",
+     "power_curve",
+     "wind_direction",
+     "icing",
+     "units"
+    ],
+    "checks_skipped": {
+     "energy_counter": "needs e_export_counter",
+     "energy_power": "needs e_export and p_ac"
+    },
+    "by_check": {
+     "duplicates": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "ordering": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "time_jumps": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "gaps": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 48,
+      "worst": "info"
+     },
+     "dst": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 8,
+      "worst": "warning"
+     },
+     "missing_values": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "out_of_range": {
+      "findings": 3,
+      "devices": 3,
+      "rows": 62,
+      "worst": "warning"
+     },
+     "flatline": {
+      "findings": 1,
+      "devices": 1,
+      "rows": 73,
+      "worst": "info"
+     },
+     "spikes": {
+      "findings": 1,
+      "devices": 1,
+      "rows": 1,
+      "worst": "info"
+     },
+     "power_curve": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 2117,
+      "worst": "info"
+     },
+     "wind_direction": {
+      "findings": 8,
+      "devices": 4,
+      "rows": 187690,
+      "worst": "info"
+     },
+     "icing": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 307,
+      "worst": "warning"
+     },
+     "units": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     }
+    },
+    "highlights": {
+     "north_offsets": {
+      "turbines": 4,
+      "flagged": [],
+      "max_abs_deg": 2.3,
+      "max_abs_device": "T04",
+      "median_abs_deg": 1.5,
+      "offsets_deg": {
+       "T01": -0.8,
+       "T02": 1.51,
+       "T03": 1.58,
+       "T04": -2.29
+      }
+     },
+     "dst": {
+      "findings": 4,
+      "transitions_hit": 2,
+      "transitions": 4
+     },
+     "gaps": {
+      "devices_with_gaps": 4,
+      "missing_intervals": 48,
+      "longest_episodes": [
+       [
+        "2014-10-26 00:00",
+        "2014-10-26 01:00",
+        6
+       ],
+       [
+        "2015-10-25 00:00",
+        "2015-10-25 01:00",
+        6
+       ]
+      ]
+     }
+    }
+   },
+   "conversions": [
+    "time stamps: ISO 8601 with the UTC offset (+01:00 / +02:00) read exactly and converted to UTC",
+    "turbine names (R80711, ...) replaced by T01 to T04 in the order of the names; no unit conversion: kW, m/s, deg, degC"
    ]
   },
   {
@@ -770,7 +984,34 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 1,
-      "missing_intervals": 507
+      "missing_intervals": 507,
+      "longest_episodes": [
+       [
+        "2022-08-30 08:50",
+        "2022-08-30 20:50",
+        72
+       ],
+       [
+        "2022-08-31 08:30",
+        "2022-08-31 21:20",
+        77
+       ],
+       [
+        "2023-07-05 08:30",
+        "2023-07-05 20:30",
+        72
+       ],
+       [
+        "2023-07-06 08:30",
+        "2023-07-06 20:40",
+        73
+       ],
+       [
+        "2023-07-20 20:30",
+        "2023-07-21 08:10",
+        70
+       ]
+      ]
      }
     }
    },
@@ -927,7 +1168,34 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 1,
-      "missing_intervals": 29
+      "missing_intervals": 29,
+      "longest_episodes": [
+       [
+        "2022-09-26 17:30",
+        "2022-09-26 17:50",
+        2
+       ],
+       [
+        "2022-10-06 09:00",
+        "2022-10-06 09:10",
+        1
+       ],
+       [
+        "2022-10-06 09:20",
+        "2022-10-06 09:30",
+        1
+       ],
+       [
+        "2022-11-05 17:50",
+        "2022-11-05 19:40",
+        11
+       ],
+       [
+        "2023-05-22 08:40",
+        "2023-05-22 11:00",
+        14
+       ]
+      ]
      }
     }
    },
@@ -1071,7 +1339,8 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 0,
-      "missing_intervals": 0
+      "missing_intervals": 0,
+      "longest_episodes": []
      }
     }
    },
@@ -1220,7 +1489,29 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 2,
-      "missing_intervals": 132
+      "missing_intervals": 132,
+      "longest_episodes": [
+       [
+        "2018-07-03 19:45",
+        "2018-07-03 23:30",
+        15
+       ],
+       [
+        "2018-07-10 04:15",
+        "2018-07-10 05:30",
+        5
+       ],
+       [
+        "2018-07-11 23:30",
+        "2018-07-12 01:15",
+        7
+       ],
+       [
+        "2018-08-12 04:30",
+        "2018-08-12 14:15",
+        39
+       ]
+      ]
      }
     }
    },
@@ -1371,7 +1662,34 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 2,
-      "missing_intervals": 1270
+      "missing_intervals": 1270,
+      "longest_episodes": [
+       [
+        "2016-04-02 07:45",
+        "2016-04-04 07:45",
+        192
+       ],
+       [
+        "2016-04-06 07:45",
+        "2016-04-08 07:45",
+        192
+       ],
+       [
+        "2016-04-13 07:45",
+        "2016-04-14 07:45",
+        96
+       ],
+       [
+        "2016-04-25 07:45",
+        "2016-04-26 07:45",
+        96
+       ],
+       [
+        "2018-08-12 04:30",
+        "2018-08-12 14:15",
+        39
+       ]
+      ]
      }
     }
    },
@@ -1522,7 +1840,29 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 3,
-      "missing_intervals": 192
+      "missing_intervals": 192,
+      "longest_episodes": [
+       [
+        "2018-07-03 19:45",
+        "2018-07-03 23:30",
+        15
+       ],
+       [
+        "2018-07-10 04:15",
+        "2018-07-10 05:30",
+        5
+       ],
+       [
+        "2018-07-12 00:00",
+        "2018-07-12 01:15",
+        5
+       ],
+       [
+        "2018-08-12 04:30",
+        "2018-08-12 14:15",
+        39
+       ]
+      ]
      }
     }
    },
@@ -1674,7 +2014,34 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 2,
-      "missing_intervals": 15946
+      "missing_intervals": 15946,
+      "longest_episodes": [
+       [
+        "2016-01-07 07:45",
+        "2016-01-12 07:45",
+        480
+       ],
+       [
+        "2016-10-23 07:45",
+        "2016-10-28 07:45",
+        480
+       ],
+       [
+        "2016-11-03 07:45",
+        "2016-11-08 07:45",
+        480
+       ],
+       [
+        "2016-12-10 07:45",
+        "2016-12-17 07:45",
+        672
+       ],
+       [
+        "2016-12-18 07:45",
+        "2016-12-24 07:45",
+        576
+       ]
+      ]
      }
     }
    },
@@ -1840,7 +2207,29 @@
      "dst": "not applicable",
      "gaps": {
       "devices_with_gaps": 2,
-      "missing_intervals": 132
+      "missing_intervals": 132,
+      "longest_episodes": [
+       [
+        "2018-07-03 19:45",
+        "2018-07-03 23:30",
+        15
+       ],
+       [
+        "2018-07-10 04:15",
+        "2018-07-10 05:30",
+        5
+       ],
+       [
+        "2018-07-11 23:30",
+        "2018-07-12 01:15",
+        7
+       ],
+       [
+        "2018-08-12 04:30",
+        "2018-08-12 14:15",
+        39
+       ]
+      ]
      }
     }
    },
@@ -1953,11 +2342,11 @@
   }
  },
  "totals": {
-  "datasets": 11,
-  "sources": 5,
-  "rows": 3450516,
-  "devices": 55,
-  "schema_valid": 11,
+  "datasets": 12,
+  "sources": 6,
+  "rows": 3870948,
+  "devices": 59,
+  "schema_valid": 12,
   "profiles": [
    "pv",
    "wind"

@@ -4,7 +4,7 @@
 * [`model`][scada_schema.model] - dataset metadata and profiles (wind, PV);
 * [`validate`][scada_schema.validate] - is a table in the schema?
 * [`io`][scada_schema.io] - self-describing Parquet;
-* [`loaders`][scada_schema.loaders] - Kelmarsh, Penmanshiel, Hill of Towie, CARE and PVDAQ to the schema;
+* [`loaders`][scada_schema.loaders] - Kelmarsh, Penmanshiel, Hill of Towie, La Haute Borne, CARE and PVDAQ to the schema;
 * [`qc`][scada_schema.qc] - data quality checks and an HTML report;
 * [`states`][scada_schema.states] - status codes to IEC 61400-26 categories;
 * [`convert`][scada_schema.convert] - wind-up, OpenOA and pvlib.

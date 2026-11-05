@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>scada-schema</title>
-<meta name="description" content="An open data standard for wind and PV SCADA: one schema, loaders for five open datasets, quality control with an HTML report, IEC 61400-26 state mapping and converters to wind-up, OpenOA and pvlib with parity checks.">
+<meta name="description" content="An open data standard for wind and PV SCADA: one schema, loaders for open datasets, quality control with an HTML report, IEC 61400-26 state mapping and converters to wind-up, OpenOA and pvlib with parity checks.">
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"
   integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous"></script>
 <script src="data.js"></script>
@@ -62,7 +62,7 @@ th:first-child, td:first-child, td.l, th.l { text-align: left; }
 <h1>scada-schema</h1>
 <p class="lead">Wind and PV SCADA data arrive in as many layouts as there are operators: columns named after a vendor's tag list, power in
 hectowatts or watts, time in local time or at the end of the interval, a status code that only the manual explains. This project fixes one
-schema, reads five open datasets into it from their original files, checks the data, maps the status codes to IEC 61400-26 categories and
+schema, reads open datasets into it from their original files, checks the data, maps the status codes to IEC 61400-26 categories and
 hands the table to wind-up, OpenOA and pvlib, with a check that the tools give the same result either way.
 <a href="https://github.com/kwwaleszczynski-del/scada-schema">Code</a>,
 <a href="https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md">specification</a>.</p>
@@ -109,7 +109,7 @@ names. The tool's own functions then run on both inputs.</p>
 <div class="grid"><div class="card wide"><div class="wrap"><table id="signals"></table></div></div></div>
 <p class="note">Working material. The schema is a proposal, not a standard of any body; the IEC 61400-26 mapping is written from the public code texts of the
 open datasets and is not an OEM document or a reading of the standard. Data: Kelmarsh, Penmanshiel (Cubico, CC BY 4.0), Hill of Towie (RES, CC BY 4.0),
-CARE to Compare (CC BY-SA 4.0), NREL PVDAQ (CC BY 4.0).</p>
+La Haute Borne (ENGIE, Etalab open licence as stated by ENGIE), CARE to Compare (CC BY-SA 4.0), NREL PVDAQ (CC BY 4.0).</p>
 </main>
 <script>
 const D = window.DATA;

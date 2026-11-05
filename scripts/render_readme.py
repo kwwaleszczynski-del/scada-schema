@@ -52,6 +52,13 @@ def numbers(study: dict) -> dict[str, str]:
     n["hot_north_flagged"] = str(len(hot["flagged"]))
     n["hot_north_max"] = f"{hot['max_abs_deg']:.1f}"
     n["hot_north_dev"] = hot["max_abs_device"]
+    lhb = _ds(study, "la_haute_borne")
+    d = lhb["qc"]["highlights"]["dst"]
+    n["lhb_dst_hit"], n["lhb_dst_total"] = str(d["transitions_hit"]), str(d["transitions"])
+    n["lhb_rows"], n["lhb_devices"] = f"{lhb['rows']:,}", str(lhb["devices"])
+    eps = lhb["qc"]["highlights"]["gaps"]["longest_episodes"]
+    n["lhb_gap_window"] = f"{eps[0][0][11:]} to {eps[0][1][11:]}"
+    n["lhb_gap_dates"] = " and ".join(e[0][:10] for e in eps[:2])
     k = _ds(study, "kelmarsh_2019")["qc"]["highlights"]["north_offsets"]
     n["kel_north_max"] = f"{k['max_abs_deg']:.1f}"
     for name, key in (("kelmarsh_2019", "kel"), ("penmanshiel_2020", "pen")):

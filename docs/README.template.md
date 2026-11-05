@@ -8,7 +8,7 @@
 SCADA exports from two wind farms never look alike: columns named after a vendor's tag list, power in hectowatts or watts, time in local
 time or at the end of the interval, a status code that only the turbine manual explains. Every analysis tool then starts with its own
 cleaning script. This package fixes **one table layout** (names, units, sign and angle conventions, time zone and interval, device types) for
-wind turbines and PV plants, reads **five open datasets** into it from their original files, checks the data, maps status codes to
+wind turbines and PV plants, reads **open datasets from {{n_sources}} sources** into it from their original files, checks the data, maps status codes to
 **IEC 61400-26 categories** and converts the table to the inputs of **wind-up, OpenOA and pvlib**, with a test that each tool gives the same result
 on the library's input as on a hand-built one.
 
@@ -23,7 +23,7 @@ here is a certified implementation of an IEC standard.
    time zone and label of the *source*, devices with ratings and positions, licence, every conversion the loader made) are stored inside the
    Parquet file. pydantic describes the metadata; the table is validated by a vectorised check that reports every violation with a count (pandera
    stops at the first failure and adds a dependency, and a per-row quality report is needed anyway).
-2. **Loaders** for Kelmarsh, Penmanshiel, Hill of Towie, CARE to Compare and NREL PVDAQ. They read the original archives (Zenodo, OEDI) and
+2. **Loaders** for Kelmarsh, Penmanshiel, Hill of Towie, La Haute Borne, CARE to Compare and NREL PVDAQ. They read the original archives (Zenodo, OEDI) and
    `fetch` downloads them with checksum verification; nothing large is in this repository. Hill of Towie's 1.4 GB yearly archives are read with range
    requests, so only the needed tables are transferred.
 3. **Quality control** with an HTML report: {{n_checks}} checks - duplicate and unordered time stamps, time jumps, gaps, daylight saving artefacts, missing values,
@@ -59,8 +59,10 @@ What the checks found on real data:
   (`{{pvdaq_loader_note}}`), and the check on the corrected table reports {{pvdaq_fixed_switch_findings}} switches.
 - **North offsets.** On Hill of Towie the nacelle position of {{hot_north_flagged}} of {{hot_north_turbines}} turbines is more than 10 degrees off the fleet mean direction;
   the largest, {{hot_north_dev}}, is {{hot_north_max}} degrees off. On Kelmarsh the largest offset is {{kel_north_max}} degrees.
-- **Time.** The daylight saving check runs on the UTC time stamps of the three UK farms (against Europe/London) and on the others it is not applicable
-  (fixed offset or anonymised time); the table above shows what it found.
+- **A real daylight saving artefact.** La Haute Borne stamps its data with the UTC offset, so the time is exact, but at both autumn changes ({{lhb_gap_dates}}) one hour is missing in UTC ({{lhb_gap_window}}, the first occurrence of
+  the repeated local hour): the source holds only one of the two repeated hours. The `dst` check, run against Europe/Paris, finds {{lhb_dst_hit}} of {{lhb_dst_total}} changes on every turbine.
+- **Time elsewhere.** The three UK farms are checked against Europe/London (UTC time stamps, no artefact found); for the others the check does not apply (fixed offset or anonymised time).
+  The table above shows what each dataset triggered.
 
 ### IEC 61400-26 mapping
 
@@ -165,6 +167,6 @@ python scripts/build_pages.py && python scripts/render_readme.py
 pytest -q                                       # tests with real data: set SCADA_SCHEMA_<NAME>_DIR
 ```
 
-Datasets and licences: Kelmarsh and Penmanshiel (Cubico Sustainable Investments, CC BY 4.0, doi 10.5281/zenodo.5841833 and 10.5281/zenodo.5946807), Hill of Towie (RES, CC BY 4.0,
+Datasets and licences: La Haute Borne (ENGIE, Etalab open licence as stated by ENGIE, not re-verified; read from the copy shipped with OpenOA, BSD-3-Clause repository), Kelmarsh and Penmanshiel (Cubico Sustainable Investments, CC BY 4.0, doi 10.5281/zenodo.5841833 and 10.5281/zenodo.5946807), Hill of Towie (RES, CC BY 4.0,
 doi 10.5281/zenodo.14870021), CARE to Compare (CC BY-SA 4.0, doi 10.5281/zenodo.15846963; the share-alike condition applies to the data and to datasets derived from it, not to this
 package's code), NREL PVDAQ (CC BY 4.0, doi 10.25984/1846021). The code is MIT licensed.

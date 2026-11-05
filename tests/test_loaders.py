@@ -271,3 +271,29 @@ def test_kelmarsh_fetch_selects_years(tmp_path, monkeypatch):
     kelmarsh.fetch(tmp_path, years=[2019])
     assert sorted(got) == ["Kelmarsh_SCADA_2019_2.zip", "Kelmarsh_WT_static.csv"]
     assert re.fullmatch(kelmarsh.ARCHIVE, "Kelmarsh_SCADA_2019_3085.zip")
+
+
+# ----------------------------------------------------------------------------------------------- La Haute Borne
+
+def test_la_haute_borne_loader_reads_utc_offsets_exactly(tmp_path):
+    from scada_schema.loaders import la_haute_borne
+
+    rows = []
+    for name in ("R80721", "R80711"):
+        for stamp in ("2014-10-26T01:50:00+02:00", "2014-10-26T02:00:00+02:00", "2014-10-26T02:00:00+01:00", "2014-10-26T02:10:00+01:00"):
+            rows.append(f"{name},{stamp},-1.0,500.0,7.0,0.5,10.0,180.0,182.0")
+    scada = "Wind_turbine_name,Date_time,Ba_avg,P_avg,Ws_avg,Va_avg,Ot_avg,Ya_avg,Wa_avg\n" + "\n".join(rows) + "\n"
+    asset = ("Wind_turbine_name,Latitude,Longitude,elevation_m,Rated_power,Hub_height_m,Rotor_diameter_m,Manufacturer,Model\n"
+             "R80711,48.45,5.58,411,2050,80,82,Senvion,MM82\nR80721,48.44,5.58,411,2050,80,82,Senvion,MM82\n")
+    with zipfile.ZipFile(tmp_path / "la_haute_borne.zip", "w") as z:
+        z.writestr(la_haute_borne.SCADA_FILE, scada)
+        z.writestr(la_haute_borne.ASSET_FILE, asset)
+    L = la_haute_borne.load(tmp_path)
+    t = L.table[L.table.device_id == "T01"]["timestamp"]
+    # the repeated hour 02:00-03:00 of the autumn change is told apart by the offset: 00:00Z and 01:00Z
+    assert sorted(t.dt.strftime("%H:%M")) == ["00:00", "01:00", "01:10", "23:50"]
+    assert validate(L.table, L.meta).ok and [d.id for d in L.meta.devices] == ["T01", "T02"]
+    assert L.meta.device("T01").rated_kw == 2050 and L.meta.device("T01").lat == pytest.approx(48.45)  # R80711 is the first name
+    assert L.table["wind_dir_rel"].iloc[0] == pytest.approx(0.5) and L.table["pitch"].iloc[0] == pytest.approx(-1.0)
+    with pytest.raises(FileNotFoundError, match="fetch the data first"):
+        la_haute_borne.load(tmp_path / "nowhere")

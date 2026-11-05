@@ -29,7 +29,7 @@ import pandas as pd
 
 from scada_schema import __version__, qc
 from scada_schema._steps import daily_log_ratio
-from scada_schema.loaders import care, hill_of_towie, kelmarsh, penmanshiel, pvdaq
+from scada_schema.loaders import care, hill_of_towie, kelmarsh, la_haute_borne, penmanshiel, pvdaq
 from scada_schema.loaders._paths import raw_dir
 from scada_schema.states import attach_states, availability_from_table, code_table_coverage, load_code_table, map_codes
 from scada_schema.validate import validate
@@ -53,6 +53,7 @@ SPECS: list[Spec] = [
     Spec("kelmarsh_2019", "kelmarsh", {"years": [2019]}, "senvion_mm", "Europe/London", True),
     Spec("penmanshiel_2020", "penmanshiel", {"years": [2020]}, "senvion_mm", "Europe/London", True),
     Spec("hill_of_towie_2021", "hill_of_towie", {"years": [2021]}, "siemens_swt_hot", "Europe/London"),
+    Spec("la_haute_borne", "la_haute_borne", {}, None, "Europe/Paris"),
     Spec("care_A", "care", {"farm": "A", "event_id": None}),
     Spec("care_B", "care", {"farm": "B", "event_id": None}),
     Spec("care_C", "care", {"farm": "C", "event_id": None}),
@@ -62,7 +63,7 @@ SPECS: list[Spec] = [
     Spec("pvdaq_35", "pvdaq", {"system": 35, "years": [2016, 2017, 2018]}),
     Spec("pvdaq_34_raw_units", "pvdaq", {"system": 34, "years": [2016, 2017, 2018], "fix_units": False}),
 ]
-MODULES = {"kelmarsh": kelmarsh, "penmanshiel": penmanshiel, "hill_of_towie": hill_of_towie, "care": care, "pvdaq": pvdaq}
+MODULES = {"kelmarsh": kelmarsh, "penmanshiel": penmanshiel, "hill_of_towie": hill_of_towie, "la_haute_borne": la_haute_borne, "care": care, "pvdaq": pvdaq}
 SEVERITIES = ("info", "warning", "error")
 
 
@@ -100,9 +101,11 @@ def summarise_report(report: qc.QCReport) -> dict:
         if vals:
             hl[key] = {"devices": len(vals), "min": round(min(vals), 4), "max": round(max(vals), 4)}
     dst = [f for f in report.findings if f.check == "dst"]
-    hl["dst"] = "not applicable" if "dst" in report.checks_skipped else {"findings": len(dst)}
+    hl["dst"] = "not applicable" if "dst" in report.checks_skipped else {
+        "findings": len(dst), "transitions_hit": max((f.n for f in dst), default=0), "transitions": max((f.total for f in dst), default=0)}
     gaps = [f for f in report.findings if f.check == "gaps"]
-    hl["gaps"] = {"devices_with_gaps": len(gaps), "missing_intervals": int(sum(f.n for f in gaps))}
+    hl["gaps"] = {"devices_with_gaps": len(gaps), "missing_intervals": int(sum(f.n for f in gaps)),
+                  "longest_episodes": [[a.strftime("%Y-%m-%d %H:%M"), b.strftime("%Y-%m-%d %H:%M"), int(k)] for a, b, k in (gaps[0].episodes if gaps else [])]}
     return {"counts": report.counts(), "checks_run": report.checks_run, "checks_skipped": report.checks_skipped, "by_check": by_check, "highlights": hl}
 
 
@@ -233,6 +236,14 @@ def run(out_dir: Path, only: list[str] | None = None, skip_converters: bool = Fa
         if spec.states and len(loaded.events):
             iec.append(iec_study(spec, loaded))
         del loaded
+    prior = None
+    if only is not None and (out_dir / "study.json").exists():
+        prior = json.loads((out_dir / "study.json").read_text(encoding="utf-8"))
+        names = {d["name"] for d in datasets}
+        datasets = [d for d in prior["datasets"] if d["name"] not in names] + datasets
+        order = {s.name: i for i, s in enumerate(SPECS)}
+        datasets.sort(key=lambda d: order.get(d["name"], 99))
+        iec = [i for i in prior["iec"] if i["name"] not in {x["name"] for x in iec}] + iec
     result: dict = {
         "scada_schema_version": __version__, "python": platform.python_version(), "pandas": pandas.__version__, "numpy": numpy.__version__,
         "datasets": datasets, "iec": iec,
@@ -250,6 +261,10 @@ def run(out_dir: Path, only: list[str] | None = None, skip_converters: bool = Fa
         "schema_valid": int(sum(d["validation"]["ok"] for d in datasets)),
         "profiles": sorted({d["profile"] for d in datasets}),
     }
+    if prior is not None:  # a partial run keeps the rest of the earlier study
+        for key in ("figures", "parity"):
+            if key in prior:
+                result[key] = prior[key]
     if only is None or "pvdaq_34" in only:
         result["figures"] = {"pvdaq_units": pvdaq_unit_figure(result)}
     if not skip_converters and only is None:

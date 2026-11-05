@@ -99,3 +99,14 @@ def test_convert_windup(tmp_path):
     assert {"TurbineName", "ActivePowerMean", "GenRpmMean"} <= set(scada.columns)
     # OpenOA needs positions: refused cleanly
     assert main(["convert", str(p), "--to", "openoa", "--out", str(tmp_path / "oa")]) == 2
+
+
+def test_fetch_wires_every_dataset(monkeypatch, tmp_path):
+    from scada_schema.loaders import DATASETS
+
+    called = []
+    for name, mod in DATASETS.items():
+        monkeypatch.setattr(mod, "fetch", lambda *a, _n=name, **k: called.append(_n) or ([] if _n not in ("pvdaq", "care") else (0 if _n == "pvdaq" else tmp_path)))
+    for name in DATASETS:
+        assert main(["fetch", name, "--data-dir", str(tmp_path)]) == 0
+    assert sorted(called) == sorted(DATASETS)

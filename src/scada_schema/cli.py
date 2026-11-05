@@ -56,7 +56,7 @@ def _loader_kwargs(args) -> dict:
             kw["fix_units"] = False
     elif args.dataset == "care":
         kw.update(farm=args.farm, event_id=args.event)
-    if args.years and args.dataset != "care":
+    if args.years and args.dataset not in ("care", "la_haute_borne"):
         kw["years"] = args.years
     del mod
     return kw
@@ -70,6 +70,9 @@ def _fetch(args) -> int:
     elif args.dataset == "care":
         p = mod.fetch(args.data_dir, datasets={args.farm: [args.event]})
         log.info("wrote %s", p)
+    elif args.dataset == "la_haute_borne":
+        for p in mod.fetch(args.data_dir):
+            log.info("ready %s", p)
     else:
         for p in mod.fetch(args.data_dir, years=args.years):
             log.info("ready %s", p)
