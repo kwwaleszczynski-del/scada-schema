@@ -33,7 +33,10 @@ here is a certified implementation of an IEC standard.
    datasets, label tables for Greenbyte and CARE, projection of an event log onto the intervals, and time-based availability through
    [res-asset-kpi](https://github.com/kwwaleszczynski-del/res-asset-kpi) (which also supplies the unit, time-zone and category code used here).
 5. **Converters** to wind-up, OpenOA and pvlib and the parity checks below.
-6. **Command line**: `scada-schema fetch | load | validate | qc | convert | spec | study`.
+6. **Your own data without code**: `scada-schema import mapping.yaml` turns a CSV, Excel or Parquet export into a canonical table from a YAML mapping (columns, units,
+   time zone and label, devices); see below.
+7. **JSON Schema** of the metadata and of the mapping file, and a list of every canonical column, in [`schema/`](schema) for tools that are not written in Python.
+8. **Command line**: `scada-schema fetch | load | import | validate | qc | convert | jsonschema | spec | study`.
 
 ## Results
 
@@ -109,6 +112,36 @@ scada-schema convert out/pvdaq_34.parquet --to pvlib --out out/pvlib
 ```
 
 Raw files are looked for in the folder given with `--data-dir`, then in `$SCADA_SCHEMA_<NAME>_DIR`, `$SCADA_SCHEMA_DATA/<name>` and `./data/<name>`.
+
+## Your own data
+
+A loader for a new export is a mapping file, not code (examples: [wind, stacked CSV](docs/examples/wind_semicolon.yaml), [PV, wide CSV](docs/examples/pv_wide.yaml)):
+
+```yaml
+name: my_wind_farm
+profile: wind
+interval: 10min
+files: ["export/*.csv"]
+read: {sep: ";", decimal: ",", encoding: utf-8}
+timestamp: {column: Time, timezone: Europe/Warsaw, label: end, format: "%d.%m.%Y %H:%M"}
+device_column: Turbine
+columns:
+  "Active power [W]": {signal: p_ac, unit: W}
+  "Wind [km/h]": {signal: wind_speed, unit: km/h}
+  "Ambient [F]": {signal: t_amb, unit: degF}
+  "Status": {signal: status_code}
+devices:
+  T01: {type: turbine, rated_kw: 2050}
+```
+
+```bash
+scada-schema import mapping.yaml --out my_farm.parquet
+scada-schema qc my_farm.parquet --html my_farm_qc.html
+```
+
+Time stamps are converted to UTC with the daylight saving rules of the zone (the repeated autumn hour is resolved by order), moved to the start of the interval and checked against the
+grid; units are converted through the registry of res-asset-kpi; every conversion lands in the metadata. A wrong time zone, a missing column or a unit that does not fit the signal stops
+the import with a message that names it. [`schema/mapping.schema.json`](schema/mapping.schema.json) lets a YAML editor complete and check the mapping.
 
 ## What is not verified
 

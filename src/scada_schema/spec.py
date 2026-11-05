@@ -130,6 +130,11 @@ def render_spec() -> str:
         " robust deviations; north offset reported above " + _fmt(cfg.direction_offset_deg) + " degrees; icing below " + _fmt(cfg.icing_temp_max) +
         " degC; unit steps from " + _fmt(cfg.unit_jump_decades) + " decades (1.5 in wind farms).",
         "",
+        "## Importing other data",
+        "",
+        "`scada-schema import mapping.yaml` builds a canonical table from a CSV, Excel or Parquet export with a YAML mapping (see `scada_schema.loaders.generic`). "
+        "JSON Schema files of the metadata and of the mapping and a list of all canonical columns are in `schema/` (`scada-schema jsonschema`).",
+        "",
         "## Versioning",
         "",
         f"The schema version is `{SCHEMA_VERSION}`. A new signal or profile is a minor version; a change of a unit, a sign or a name is a major "

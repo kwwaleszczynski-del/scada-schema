@@ -148,6 +148,10 @@ Shipped code tables: `senvion_mm`, `siemens_swt_hot`; label tables: `greenbyte`,
 
 Default thresholds (`QCConfig`): spike filter window 7 intervals at 8 robust deviations; north offset reported above 10 degrees; icing below 3 degC; unit steps from 0.8 decades (1.5 in wind farms).
 
+## Importing other data
+
+`scada-schema import mapping.yaml` builds a canonical table from a CSV, Excel or Parquet export with a YAML mapping (see `scada_schema.loaders.generic`). JSON Schema files of the metadata and of the mapping and a list of all canonical columns are in `schema/` (`scada-schema jsonschema`).
+
 ## Versioning
 
 The schema version is `1.0`. A new signal or profile is a minor version; a change of a unit, a sign or a name is a major version. Files carry the version they were written with.

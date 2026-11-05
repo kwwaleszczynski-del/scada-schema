@@ -1,0 +1,18 @@
+# A wind farm export: one CSV per month, semicolons and decimal commas, local time stamped at the END of the interval.
+# Try: scada-schema import docs/examples/wind_semicolon.yaml --out my_farm.parquet   (with your own files under export/)
+name: my_wind_farm
+profile: wind
+interval: 10min
+files: ["export/*.csv"]
+read: {sep: ";", decimal: ",", encoding: utf-8}
+timestamp: {column: Time, timezone: Europe/Warsaw, label: end, format: "%d.%m.%Y %H:%M"}
+device_column: Turbine
+columns:
+  "Active power [W]": {signal: p_ac, unit: W}
+  "Wind [km/h]": {signal: wind_speed, unit: km/h}
+  "Wind std [km/h]": {signal: wind_speed, unit: km/h, stat: std}
+  "Nacelle position [deg]": {signal: nacelle_dir}
+  "Ambient [F]": {signal: t_amb, unit: degF}
+  "Status": {signal: status_code}
+devices:
+  T01: {type: turbine, rated_kw: 2050, rotor_diameter_m: 92, hub_height_m: 80}

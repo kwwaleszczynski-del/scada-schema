@@ -1,0 +1,2513 @@
+{
+ "columns": [
+  {
+   "description": "start of the averaging interval, UTC",
+   "dtype": "datetime64[ns, UTC]",
+   "name": "timestamp",
+   "required": true
+  },
+  {
+   "description": "device identifier, unique within the dataset",
+   "dtype": "string",
+   "name": "device_id",
+   "required": true
+  },
+  {
+   "description": "active power at the AC terminals, positive = export",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 30000,
+   "min": -20000,
+   "name": "p_ac",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "min of the interval: active power at the AC terminals, positive = export",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 30000,
+   "min": -20000,
+   "name": "p_ac__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "max of the interval: active power at the AC terminals, positive = export",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 30000,
+   "min": -20000,
+   "name": "p_ac__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "std of the interval: active power at the AC terminals, positive = export",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 30000,
+   "min": -20000,
+   "name": "p_ac__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "reactive power, positive = export (over-excited)",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 20000,
+   "min": -20000,
+   "name": "q_ac",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kvar"
+  },
+  {
+   "description": "min of the interval: reactive power, positive = export (over-excited)",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 20000,
+   "min": -20000,
+   "name": "q_ac__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kvar"
+  },
+  {
+   "description": "max of the interval: reactive power, positive = export (over-excited)",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 20000,
+   "min": -20000,
+   "name": "q_ac__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kvar"
+  },
+  {
+   "description": "std of the interval: reactive power, positive = export (over-excited)",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 20000,
+   "min": -20000,
+   "name": "q_ac__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kvar"
+  },
+  {
+   "description": "displacement power factor, signed like q_ac",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 1.0,
+   "min": -1.0,
+   "name": "power_factor",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "min of the interval: displacement power factor, signed like q_ac",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 1.0,
+   "min": -1.0,
+   "name": "power_factor__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "max of the interval: displacement power factor, signed like q_ac",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 1.0,
+   "min": -1.0,
+   "name": "power_factor__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "std of the interval: displacement power factor, signed like q_ac",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 1.0,
+   "min": -1.0,
+   "name": "power_factor__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "energy exported during the interval",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float64",
+   "kind": "sum",
+   "max": 100000,
+   "min": -1000,
+   "name": "e_export",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kWh"
+  },
+  {
+   "description": "cumulative export meter reading at the end of the interval",
+   "devices": [
+    "turbine",
+    "inverter",
+    "meter",
+    "plant"
+   ],
+   "dtype": "float64",
+   "kind": "counter",
+   "max": null,
+   "min": 0,
+   "name": "e_export_counter",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kWh"
+  },
+  {
+   "description": "active power set point or limit sent to the device",
+   "devices": [
+    "turbine",
+    "inverter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 30000,
+   "min": 0,
+   "name": "setpoint",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "min of the interval: active power set point or limit sent to the device",
+   "devices": [
+    "turbine",
+    "inverter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 30000,
+   "min": 0,
+   "name": "setpoint__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "max of the interval: active power set point or limit sent to the device",
+   "devices": [
+    "turbine",
+    "inverter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 30000,
+   "min": 0,
+   "name": "setpoint__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "std of the interval: active power set point or limit sent to the device",
+   "devices": [
+    "turbine",
+    "inverter",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 30000,
+   "min": 0,
+   "name": "setpoint__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "AC voltage (line-to-line mean)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 40000,
+   "min": 0,
+   "name": "v_ac",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "min of the interval: AC voltage (line-to-line mean)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 40000,
+   "min": 0,
+   "name": "v_ac__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "max of the interval: AC voltage (line-to-line mean)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 40000,
+   "min": 0,
+   "name": "v_ac__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "std of the interval: AC voltage (line-to-line mean)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 40000,
+   "min": 0,
+   "name": "v_ac__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "AC current (mean of phases)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 50000,
+   "min": -50000,
+   "name": "i_ac",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "min of the interval: AC current (mean of phases)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 50000,
+   "min": -50000,
+   "name": "i_ac__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "max of the interval: AC current (mean of phases)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 50000,
+   "min": -50000,
+   "name": "i_ac__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "std of the interval: AC current (mean of phases)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 50000,
+   "min": -50000,
+   "name": "i_ac__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "DC power at the inverter input, positive = generation",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 20000,
+   "min": -1000,
+   "name": "p_dc",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "min of the interval: DC power at the inverter input, positive = generation",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 20000,
+   "min": -1000,
+   "name": "p_dc__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "max of the interval: DC power at the inverter input, positive = generation",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 20000,
+   "min": -1000,
+   "name": "p_dc__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "std of the interval: DC power at the inverter input, positive = generation",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 20000,
+   "min": -1000,
+   "name": "p_dc__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "kW"
+  },
+  {
+   "description": "DC voltage",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 2000,
+   "min": -50,
+   "name": "v_dc",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "min of the interval: DC voltage",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 2000,
+   "min": -50,
+   "name": "v_dc__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "max of the interval: DC voltage",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 2000,
+   "min": -50,
+   "name": "v_dc__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "std of the interval: DC voltage",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 2000,
+   "min": -50,
+   "name": "v_dc__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "V"
+  },
+  {
+   "description": "DC current",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 20000,
+   "min": -50,
+   "name": "i_dc",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "min of the interval: DC current",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 20000,
+   "min": -50,
+   "name": "i_dc__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "max of the interval: DC current",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 20000,
+   "min": -50,
+   "name": "i_dc__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "std of the interval: DC current",
+   "devices": [
+    "inverter",
+    "string"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 20000,
+   "min": -50,
+   "name": "i_dc__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "A"
+  },
+  {
+   "description": "wind speed at the nacelle anemometer",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "min of the interval: wind speed at the nacelle anemometer",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "max of the interval: wind speed at the nacelle anemometer",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "std of the interval: wind speed at the nacelle anemometer",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "wind speed of the second (redundant) anemometer",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed_2",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "min of the interval: wind speed of the second (redundant) anemometer",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed_2__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "max of the interval: wind speed of the second (redundant) anemometer",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed_2__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "std of the interval: wind speed of the second (redundant) anemometer",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 80,
+   "min": 0,
+   "name": "wind_speed_2__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "m/s"
+  },
+  {
+   "description": "wind direction, from, clockwise from true north",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "circular",
+   "max": 360,
+   "min": 0,
+   "name": "wind_dir",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "min of the interval: wind direction, from, clockwise from true north",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 360,
+   "min": 0,
+   "name": "wind_dir__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "max of the interval: wind direction, from, clockwise from true north",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 360,
+   "min": 0,
+   "name": "wind_dir__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "std of the interval: wind direction, from, clockwise from true north",
+   "devices": [
+    "turbine",
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 360,
+   "min": 0,
+   "name": "wind_dir__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "wind vane reading relative to the nacelle, positive = wind from the right",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "circular",
+   "max": 360,
+   "min": -180,
+   "name": "wind_dir_rel",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "min of the interval: wind vane reading relative to the nacelle, positive = wind from the right",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 360,
+   "min": -180,
+   "name": "wind_dir_rel__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "max of the interval: wind vane reading relative to the nacelle, positive = wind from the right",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 360,
+   "min": -180,
+   "name": "wind_dir_rel__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "std of the interval: wind vane reading relative to the nacelle, positive = wind from the right",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 360,
+   "min": -180,
+   "name": "wind_dir_rel__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "nacelle (yaw) position, clockwise from true north",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "circular",
+   "max": 360,
+   "min": 0,
+   "name": "nacelle_dir",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "min of the interval: nacelle (yaw) position, clockwise from true north",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 360,
+   "min": 0,
+   "name": "nacelle_dir__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "max of the interval: nacelle (yaw) position, clockwise from true north",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 360,
+   "min": 0,
+   "name": "nacelle_dir__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "std of the interval: nacelle (yaw) position, clockwise from true north",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 360,
+   "min": 0,
+   "name": "nacelle_dir__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "rotor speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 60,
+   "min": -5,
+   "name": "rotor_speed",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "min of the interval: rotor speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 60,
+   "min": -5,
+   "name": "rotor_speed__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "max of the interval: rotor speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 60,
+   "min": -5,
+   "name": "rotor_speed__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "std of the interval: rotor speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 60,
+   "min": -5,
+   "name": "rotor_speed__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "generator speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 10000,
+   "min": -50,
+   "name": "gen_speed",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "min of the interval: generator speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 10000,
+   "min": -50,
+   "name": "gen_speed__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "max of the interval: generator speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 10000,
+   "min": -50,
+   "name": "gen_speed__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "std of the interval: generator speed",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 10000,
+   "min": -50,
+   "name": "gen_speed__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "rpm"
+  },
+  {
+   "description": "blade pitch angle, 0 = power position, about 90 = feathered (mean of blades)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 120,
+   "min": -20,
+   "name": "pitch",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "min of the interval: blade pitch angle, 0 = power position, about 90 = feathered (mean of blades)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 120,
+   "min": -20,
+   "name": "pitch__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "max of the interval: blade pitch angle, 0 = power position, about 90 = feathered (mean of blades)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 120,
+   "min": -20,
+   "name": "pitch__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "std of the interval: blade pitch angle, 0 = power position, about 90 = feathered (mean of blades)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 120,
+   "min": -20,
+   "name": "pitch__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "deg"
+  },
+  {
+   "description": "generator or rotor torque",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 20000,
+   "min": -5000,
+   "name": "torque",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "kNm"
+  },
+  {
+   "description": "min of the interval: generator or rotor torque",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 20000,
+   "min": -5000,
+   "name": "torque__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "kNm"
+  },
+  {
+   "description": "max of the interval: generator or rotor torque",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 20000,
+   "min": -5000,
+   "name": "torque__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "kNm"
+  },
+  {
+   "description": "std of the interval: generator or rotor torque",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 20000,
+   "min": -5000,
+   "name": "torque__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "kNm"
+  },
+  {
+   "description": "seconds of the interval in which the turbine was stopped",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float64",
+   "kind": "sum",
+   "max": null,
+   "min": 0,
+   "name": "shutdown_s",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "s"
+  },
+  {
+   "description": "tower or drive-train vibration (RMS velocity)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 500,
+   "min": 0,
+   "name": "vibration",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "mm/s"
+  },
+  {
+   "description": "min of the interval: tower or drive-train vibration (RMS velocity)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 500,
+   "min": 0,
+   "name": "vibration__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "mm/s"
+  },
+  {
+   "description": "max of the interval: tower or drive-train vibration (RMS velocity)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 500,
+   "min": 0,
+   "name": "vibration__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "mm/s"
+  },
+  {
+   "description": "std of the interval: tower or drive-train vibration (RMS velocity)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 500,
+   "min": 0,
+   "name": "vibration__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "mm/s"
+  },
+  {
+   "description": "ambient air temperature",
+   "devices": [
+    "turbine",
+    "met",
+    "plant",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 70,
+   "min": -60,
+   "name": "t_amb",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: ambient air temperature",
+   "devices": [
+    "turbine",
+    "met",
+    "plant",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 70,
+   "min": -60,
+   "name": "t_amb__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: ambient air temperature",
+   "devices": [
+    "turbine",
+    "met",
+    "plant",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 70,
+   "min": -60,
+   "name": "t_amb__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: ambient air temperature",
+   "devices": [
+    "turbine",
+    "met",
+    "plant",
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 70,
+   "min": -60,
+   "name": "t_amb__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "air temperature inside the nacelle",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 120,
+   "min": -60,
+   "name": "t_nacelle",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: air temperature inside the nacelle",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 120,
+   "min": -60,
+   "name": "t_nacelle__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: air temperature inside the nacelle",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 120,
+   "min": -60,
+   "name": "t_nacelle__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: air temperature inside the nacelle",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 120,
+   "min": -60,
+   "name": "t_nacelle__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "gearbox oil temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 150,
+   "min": -60,
+   "name": "t_gearbox_oil",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: gearbox oil temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 150,
+   "min": -60,
+   "name": "t_gearbox_oil__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: gearbox oil temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 150,
+   "min": -60,
+   "name": "t_gearbox_oil__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: gearbox oil temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 150,
+   "min": -60,
+   "name": "t_gearbox_oil__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "gearbox (high speed shaft) bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 200,
+   "min": -60,
+   "name": "t_gearbox_bearing",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: gearbox (high speed shaft) bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_gearbox_bearing__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: gearbox (high speed shaft) bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_gearbox_bearing__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: gearbox (high speed shaft) bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_gearbox_bearing__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "generator stator winding temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 250,
+   "min": -60,
+   "name": "t_gen_winding",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: generator stator winding temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 250,
+   "min": -60,
+   "name": "t_gen_winding__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: generator stator winding temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 250,
+   "min": -60,
+   "name": "t_gen_winding__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: generator stator winding temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 250,
+   "min": -60,
+   "name": "t_gen_winding__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "generator bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 200,
+   "min": -60,
+   "name": "t_gen_bearing",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: generator bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_gen_bearing__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: generator bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_gen_bearing__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: generator bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_gen_bearing__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "main bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 200,
+   "min": -60,
+   "name": "t_main_bearing",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: main bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_main_bearing__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: main bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_main_bearing__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: main bearing temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 200,
+   "min": -60,
+   "name": "t_main_bearing__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "transformer temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 250,
+   "min": -60,
+   "name": "t_transformer",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: transformer temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 250,
+   "min": -60,
+   "name": "t_transformer__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: transformer temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 250,
+   "min": -60,
+   "name": "t_transformer__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: transformer temperature",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 250,
+   "min": -60,
+   "name": "t_transformer__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "inverter heat sink or cabinet temperature",
+   "devices": [
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 150,
+   "min": -60,
+   "name": "t_inverter",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: inverter heat sink or cabinet temperature",
+   "devices": [
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 150,
+   "min": -60,
+   "name": "t_inverter__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: inverter heat sink or cabinet temperature",
+   "devices": [
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 150,
+   "min": -60,
+   "name": "t_inverter__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: inverter heat sink or cabinet temperature",
+   "devices": [
+    "inverter"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 150,
+   "min": -60,
+   "name": "t_inverter__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "back-of-module temperature",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 120,
+   "min": -60,
+   "name": "t_module",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "min of the interval: back-of-module temperature",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 120,
+   "min": -60,
+   "name": "t_module__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "max of the interval: back-of-module temperature",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 120,
+   "min": -60,
+   "name": "t_module__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "std of the interval: back-of-module temperature",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 120,
+   "min": -60,
+   "name": "t_module__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "degC"
+  },
+  {
+   "description": "global horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 1800,
+   "min": -50,
+   "name": "ghi",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "min of the interval: global horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 1800,
+   "min": -50,
+   "name": "ghi__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "max of the interval: global horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 1800,
+   "min": -50,
+   "name": "ghi__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "std of the interval: global horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 1800,
+   "min": -50,
+   "name": "ghi__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "plane-of-array irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 1800,
+   "min": -50,
+   "name": "poa",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "min of the interval: plane-of-array irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 1800,
+   "min": -50,
+   "name": "poa__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "max of the interval: plane-of-array irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 1800,
+   "min": -50,
+   "name": "poa__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "std of the interval: plane-of-array irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 1800,
+   "min": -50,
+   "name": "poa__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "direct normal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 1500,
+   "min": -50,
+   "name": "dni",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "min of the interval: direct normal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 1500,
+   "min": -50,
+   "name": "dni__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "max of the interval: direct normal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 1500,
+   "min": -50,
+   "name": "dni__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "std of the interval: direct normal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 1500,
+   "min": -50,
+   "name": "dni__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "diffuse horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 1200,
+   "min": -50,
+   "name": "dhi",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "min of the interval: diffuse horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 1200,
+   "min": -50,
+   "name": "dhi__min",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "max of the interval: diffuse horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 1200,
+   "min": -50,
+   "name": "dhi__max",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "std of the interval: diffuse horizontal irradiance",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 1200,
+   "min": -50,
+   "name": "dhi__std",
+   "profiles": [
+    "pv"
+   ],
+   "required": false,
+   "unit": "W/m2"
+  },
+  {
+   "description": "relative humidity",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 100,
+   "min": 0,
+   "name": "humidity",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "%"
+  },
+  {
+   "description": "min of the interval: relative humidity",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 100,
+   "min": 0,
+   "name": "humidity__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "%"
+  },
+  {
+   "description": "max of the interval: relative humidity",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 100,
+   "min": 0,
+   "name": "humidity__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "%"
+  },
+  {
+   "description": "std of the interval: relative humidity",
+   "devices": [
+    "met",
+    "plant"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 100,
+   "min": 0,
+   "name": "humidity__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "%"
+  },
+  {
+   "description": "air pressure",
+   "devices": [
+    "met",
+    "plant",
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 110000,
+   "min": 50000,
+   "name": "pressure",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "Pa"
+  },
+  {
+   "description": "min of the interval: air pressure",
+   "devices": [
+    "met",
+    "plant",
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 110000,
+   "min": 50000,
+   "name": "pressure__min",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "Pa"
+  },
+  {
+   "description": "max of the interval: air pressure",
+   "devices": [
+    "met",
+    "plant",
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 110000,
+   "min": 50000,
+   "name": "pressure__max",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "Pa"
+  },
+  {
+   "description": "std of the interval: air pressure",
+   "devices": [
+    "met",
+    "plant",
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 110000,
+   "min": 50000,
+   "name": "pressure__std",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": "Pa"
+  },
+  {
+   "description": "state or alarm code of the device that dominates the interval, as logged",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "string",
+   "kind": "text",
+   "max": null,
+   "min": null,
+   "name": "status_code",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": null
+  },
+  {
+   "description": "IEC 61400-26 information category of the interval (see scada_schema.states)",
+   "devices": [
+    "turbine",
+    "inverter"
+   ],
+   "dtype": "string",
+   "kind": "category",
+   "max": null,
+   "min": null,
+   "name": "iec_category",
+   "profiles": [
+    "wind",
+    "pv"
+   ],
+   "required": false,
+   "unit": null
+  }
+ ],
+ "schema_version": "1.0"
+}

@@ -45,6 +45,7 @@ def test_readme_has_no_hand_typed_result_numbers():
     """Numbers in the prose must come from placeholders: the template may contain only counts that are part of a name or a version."""
     tpl = (ROOT / "docs" / "README.template.md").read_text(encoding="utf-8")
     prose = re.sub(r"```.*?```", "", tpl, flags=re.S)
+    prose = re.sub(r"^\s*\d+\.\s", "", prose, flags=re.M)  # list numbering
     prose = re.sub(r"\{\{[^}]+\}\}|\]\([^)]*\)|`[^`]*`|https?://\S+|doi \S+|10\.\d+/[\w.]+", "", prose)
     allowed = {"10", "60", "2", "61400", "26", "0.25", "0.75", "12", "1.4", "0.5", "0.5.1", "3", "4", "5", "6", "1", "2.3", "15", "7", "9", "11", "0", "34"}
     found = {m for m in re.findall(r"\b\d+(?:\.\d+)*\b", prose)} - allowed

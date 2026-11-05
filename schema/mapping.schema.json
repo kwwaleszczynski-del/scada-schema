@@ -1,0 +1,428 @@
+{
+ "$defs": {
+  "ColumnSpec": {
+   "additionalProperties": false,
+   "description": "What one column holds.",
+   "properties": {
+    "device": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "wide layout: the device this column belongs to",
+     "title": "Device"
+    },
+    "offset": {
+     "default": 0.0,
+     "title": "Offset",
+     "type": "number"
+    },
+    "scale": {
+     "default": 1.0,
+     "title": "Scale",
+     "type": "number"
+    },
+    "sign": {
+     "default": 1,
+     "enum": [
+      1,
+      -1
+     ],
+     "title": "Sign",
+     "type": "integer"
+    },
+    "signal": {
+     "title": "Signal",
+     "type": "string"
+    },
+    "stat": {
+     "anyOf": [
+      {
+       "enum": [
+        "min",
+        "max",
+        "std"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "the column is the minimum, maximum or standard deviation of the interval",
+     "title": "Stat"
+    },
+    "unit": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "unit of the column; the canonical unit of the signal when omitted",
+     "title": "Unit"
+    }
+   },
+   "required": [
+    "signal"
+   ],
+   "title": "ColumnSpec",
+   "type": "object"
+  },
+  "ReadSpec": {
+   "additionalProperties": false,
+   "properties": {
+    "decimal": {
+     "default": ".",
+     "title": "Decimal",
+     "type": "string"
+    },
+    "encoding": {
+     "default": "utf-8-sig",
+     "title": "Encoding",
+     "type": "string"
+    },
+    "format": {
+     "default": "csv",
+     "enum": [
+      "csv",
+      "excel",
+      "parquet"
+     ],
+     "title": "Format",
+     "type": "string"
+    },
+    "na_values": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Na Values",
+     "type": "array"
+    },
+    "sep": {
+     "default": ",",
+     "title": "Sep",
+     "type": "string"
+    },
+    "sheet": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Sheet"
+    },
+    "skiprows": {
+     "default": 0,
+     "title": "Skiprows",
+     "type": "integer"
+    },
+    "thousands": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Thousands"
+    }
+   },
+   "title": "ReadSpec",
+   "type": "object"
+  },
+  "Source": {
+   "additionalProperties": false,
+   "description": "Where the data came from.",
+   "properties": {
+    "citation": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Citation"
+    },
+    "doi": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Doi"
+    },
+    "license": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "License"
+    },
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "url": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Url"
+    }
+   },
+   "required": [
+    "name"
+   ],
+   "title": "Source",
+   "type": "object"
+  },
+  "TimeSpec": {
+   "additionalProperties": false,
+   "properties": {
+    "column": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      }
+     ],
+     "title": "Column"
+    },
+    "format": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Format"
+    },
+    "label": {
+     "default": "start",
+     "enum": [
+      "start",
+      "end",
+      "center"
+     ],
+     "title": "Label",
+     "type": "string"
+    },
+    "round": {
+     "default": false,
+     "title": "Round",
+     "type": "boolean"
+    },
+    "timezone": {
+     "default": "UTC",
+     "title": "Timezone",
+     "type": "string"
+    }
+   },
+   "required": [
+    "column"
+   ],
+   "title": "TimeSpec",
+   "type": "object"
+  }
+ },
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "additionalProperties": false,
+ "description": "A mapping file (see the module description).",
+ "properties": {
+  "base_dir": {
+   "anyOf": [
+    {
+     "format": "path",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Base Dir"
+  },
+  "code_table": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "map status_code to iec_category with a shipped code table (senvion_mm, siemens_swt_hot)",
+   "title": "Code Table"
+  },
+  "columns": {
+   "additionalProperties": {
+    "$ref": "#/$defs/ColumnSpec"
+   },
+   "title": "Columns",
+   "type": "object"
+  },
+  "default_device_type": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Default Device Type"
+  },
+  "device": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Device"
+  },
+  "device_column": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Device Column"
+  },
+  "device_format": {
+   "default": "{}",
+   "title": "Device Format",
+   "type": "string"
+  },
+  "device_regex": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Device Regex"
+  },
+  "devices": {
+   "additionalProperties": {
+    "additionalProperties": true,
+    "type": "object"
+   },
+   "title": "Devices",
+   "type": "object"
+  },
+  "files": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Files",
+   "type": "array"
+  },
+  "interval": {
+   "title": "Interval",
+   "type": "string"
+  },
+  "name": {
+   "title": "Name",
+   "type": "string"
+  },
+  "notes": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Notes",
+   "type": "array"
+  },
+  "profile": {
+   "enum": [
+    "wind",
+    "pv"
+   ],
+   "title": "Profile",
+   "type": "string"
+  },
+  "read": {
+   "$ref": "#/$defs/ReadSpec"
+  },
+  "source": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Source"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "timestamp": {
+   "$ref": "#/$defs/TimeSpec"
+  }
+ },
+ "required": [
+  "name",
+  "profile",
+  "interval",
+  "files",
+  "timestamp",
+  "columns"
+ ],
+ "title": "ImportSpec",
+ "type": "object"
+}

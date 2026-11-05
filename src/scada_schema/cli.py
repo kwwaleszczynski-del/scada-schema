@@ -7,6 +7,8 @@ Usage:
     scada-schema validate out/kelmarsh_2019.parquet
     scada-schema qc out/kelmarsh_2019.parquet --html out/qc.html --dst-zone Europe/London
     scada-schema convert out/kelmarsh_2019.parquet --to windup --out out/windup
+    scada-schema import mapping.yaml --out my_farm.parquet
+    scada-schema jsonschema --out schema
     scada-schema spec > SPEC.md
     scada-schema study --out results
 """
@@ -154,6 +156,23 @@ def _convert(args) -> int:
     return 0
 
 
+def _import(args) -> int:
+    from scada_schema.loaders.generic import import_table, load_spec
+
+    loaded = import_table(load_spec(args.mapping), validate_result=not args.no_validate)
+    out = write_parquet(loaded.table, loaded.meta, args.out, check=not args.no_validate)
+    log.info("wrote %s: %d rows, %d devices", out, len(loaded.table), loaded.table["device_id"].nunique())
+    return 0
+
+
+def _jsonschema(args) -> int:
+    from scada_schema import jsonschema
+
+    for p in jsonschema.write(args.out):
+        log.info("wrote %s", p)
+    return 0
+
+
 def _spec(args) -> int:
     from scada_schema.spec import render_spec
 
@@ -219,6 +238,16 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--inverter", help="pvlib: inverter id")
     s.add_argument("--at", default="center", choices=["start", "center", "end"], help="pvlib: instant of the interval that indexes the weather")
     s.set_defaults(func=_convert)
+
+    s = sub.add_parser("import", help="turn your own export into a canonical Parquet file with a YAML mapping")
+    s.add_argument("mapping")
+    s.add_argument("--out", required=True)
+    s.add_argument("--no-validate", action="store_true")
+    s.set_defaults(func=_import)
+
+    s = sub.add_parser("jsonschema", help="write JSON Schema files and the column list of the standard")
+    s.add_argument("--out", default="schema")
+    s.set_defaults(func=_jsonschema)
 
     s = sub.add_parser("spec", help="print the specification (SPEC.md) generated from the code")
     s.set_defaults(func=_spec)

@@ -1,0 +1,300 @@
+{
+ "$defs": {
+  "Device": {
+   "additionalProperties": false,
+   "description": "One device of a plant: a turbine, an inverter, a string, a met station, a meter or the plant itself.",
+   "properties": {
+    "azimuth_deg": {
+     "anyOf": [
+      {
+       "maximum": 360,
+       "minimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "clockwise from north, 180 = south",
+     "title": "Azimuth Deg"
+    },
+    "capacity_kwp": {
+     "anyOf": [
+      {
+       "exclusiveMinimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "DC rating (inverter, string, plant)",
+     "title": "Capacity Kwp"
+    },
+    "hub_height_m": {
+     "anyOf": [
+      {
+       "exclusiveMinimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Hub Height M"
+    },
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "lat": {
+     "anyOf": [
+      {
+       "maximum": 90,
+       "minimum": -90,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Lat"
+    },
+    "lon": {
+     "anyOf": [
+      {
+       "maximum": 180,
+       "minimum": -180,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Lon"
+    },
+    "parent": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "e.g. the inverter of a string",
+     "title": "Parent"
+    },
+    "rated_kw": {
+     "anyOf": [
+      {
+       "exclusiveMinimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "AC rating (turbine, inverter, meter)",
+     "title": "Rated Kw"
+    },
+    "rotor_diameter_m": {
+     "anyOf": [
+      {
+       "exclusiveMinimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Rotor Diameter M"
+    },
+    "tilt_deg": {
+     "anyOf": [
+      {
+       "maximum": 90,
+       "minimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Tilt Deg"
+    },
+    "type": {
+     "enum": [
+      "turbine",
+      "inverter",
+      "string",
+      "met",
+      "meter",
+      "plant"
+     ],
+     "title": "Type",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "type"
+   ],
+   "title": "Device",
+   "type": "object"
+  },
+  "Source": {
+   "additionalProperties": false,
+   "description": "Where the data came from.",
+   "properties": {
+    "citation": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Citation"
+    },
+    "doi": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Doi"
+    },
+    "license": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "License"
+    },
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "url": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Url"
+    }
+   },
+   "required": [
+    "name"
+   ],
+   "title": "Source",
+   "type": "object"
+  }
+ },
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "additionalProperties": false,
+ "description": "Everything needed to interpret a canonical table.\n\nAttributes\n----------\nprofile : {\"wind\", \"pv\"}\ninterval : str\n    Length of the averaging interval: one of 5min, 10min, 15min, 30min, 1h.\nsource_timezone : str\n    IANA time zone the *source* used for its time stamps (``UTC`` or a fixed offset such as ``Etc/GMT+8``\n    mean no daylight saving time). The table itself is always UTC.\nsource_label : {\"start\", \"end\", \"center\", \"instant\"}\n    Which instant of its interval a source time stamp marked. The table always marks the start.\ndevices : list of Device\nsource : Source\nconversions : list of str\n    Unit and scale conversions applied by the loader, in words (provenance).\nnotes : list of str",
+ "properties": {
+  "conversions": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Conversions",
+   "type": "array"
+  },
+  "devices": {
+   "items": {
+    "$ref": "#/$defs/Device"
+   },
+   "title": "Devices",
+   "type": "array"
+  },
+  "interval": {
+   "title": "Interval",
+   "type": "string"
+  },
+  "name": {
+   "title": "Name",
+   "type": "string"
+  },
+  "notes": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Notes",
+   "type": "array"
+  },
+  "profile": {
+   "enum": [
+    "wind",
+    "pv"
+   ],
+   "title": "Profile",
+   "type": "string"
+  },
+  "schema_version": {
+   "default": "1.0",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "source": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Source"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "source_label": {
+   "default": "start",
+   "enum": [
+    "start",
+    "end",
+    "center",
+    "instant"
+   ],
+   "title": "Source Label",
+   "type": "string"
+  },
+  "source_timezone": {
+   "default": "UTC",
+   "title": "Source Timezone",
+   "type": "string"
+  }
+ },
+ "required": [
+  "name",
+  "profile",
+  "interval"
+ ],
+ "title": "DatasetMeta",
+ "type": "object"
+}

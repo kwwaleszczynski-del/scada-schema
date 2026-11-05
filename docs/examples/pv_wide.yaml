@@ -1,0 +1,15 @@
+# A PV logger export: one wide CSV, every column belongs to a device (two inverters and the met station), 15-minute means stamped at the start.
+name: my_pv_plant
+profile: pv
+interval: 15min
+files: ["logger.csv"]
+timestamp: {column: time, timezone: UTC, label: start}
+columns:
+  "INV1 Pac [kW]": {signal: p_ac, device: INV1}
+  "INV2 Pac [kW]": {signal: p_ac, device: INV2}
+  "POA [W/m2]": {signal: poa, device: MET}
+  "Tamb [C]": {signal: t_amb, unit: degC, device: MET}
+devices:
+  INV1: {type: inverter, rated_kw: 500, capacity_kwp: 600}
+  INV2: {type: inverter, rated_kw: 500, capacity_kwp: 600}
+  MET: {type: met}
