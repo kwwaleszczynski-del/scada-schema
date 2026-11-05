@@ -1,0 +1,8 @@
+{
+  "title": "scada-schema: an open data standard for wind and PV SCADA",
+  "upload_type": "software",
+  "description": "One table schema for wind turbine and PV SCADA, loaders for Kelmarsh, Penmanshiel, Hill of Towie, CARE to Compare and NREL PVDAQ, data quality checks with an HTML report, IEC 61400-26 state mapping, and converters to wind-up, OpenOA and pvlib with parity checks.",
+  "creators": [{"name": "Waleszczyński, Konrad"}],
+  "license": "MIT",
+  "keywords": ["SCADA", "wind energy", "photovoltaics", "data schema", "data quality", "IEC 61400-26"]
+}

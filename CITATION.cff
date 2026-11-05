@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "scada-schema: an open data standard for wind and PV SCADA"
+type: software
+authors:
+  - family-names: "Waleszczyński"
+    given-names: "Konrad"
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/kwwaleszczynski-del/scada-schema"
+keywords:
+  - SCADA
+  - wind energy
+  - photovoltaics
+  - data schema
+  - data quality
+  - IEC 61400-26

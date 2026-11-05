@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scada-schema"
+dynamic = ["version"]
+description = "An open data standard for wind and PV SCADA: one schema, loaders for open datasets, quality control with an HTML report, IEC 61400-26 state mapping and converters to wind-up, OpenOA and pvlib."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Konrad Waleszczyński" }]
+keywords = ["scada", "wind-energy", "photovoltaics", "data-schema", "data-quality", "iec-61400-26", "wind-up", "openoa", "pvlib"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "pyarrow>=14",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "requests>=2.31",
+    "res-asset-kpi>=0.1.0",
+]
+
+[project.optional-dependencies]
+windup = ["res-wind-up>=0.5"]
+openoa = ["openoa>=3.1"]
+pvlib = ["pvlib>=0.11"]
+converters = ["scada-schema[windup,openoa,pvlib]"]
+dev = ["pytest>=8", "ruff>=0.6", "build>=1.2"]
+
+[project.scripts]
+scada-schema = "scada_schema.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/kwwaleszczynski-del/scada-schema"
+Documentation = "https://kwwaleszczynski-del.github.io/scada-schema/"
+Issues = "https://github.com/kwwaleszczynski-del/scada-schema/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "scada_schema._version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+scada_schema = ["data/*.csv", "data/*.yaml", "py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning"]
+markers = [
+    "data: needs open datasets on disk (set SCADA_SCHEMA_DATA); skipped otherwise",
+    "parity: needs wind-up, OpenOA or pvlib; skipped when not installed",
+]
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501", "B905"]
