@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+Resampling to a coarser interval (`scada-schema resample`).
+
 Generic importer driven by a YAML mapping (`scada-schema import`), JSON Schema files and a column list (`scada-schema jsonschema`).
 
 ## 0.1.0

@@ -36,7 +36,8 @@ here is a certified implementation of an IEC standard.
 6. **Your own data without code**: `scada-schema import mapping.yaml` turns a CSV, Excel or Parquet export into a canonical table from a YAML mapping (columns, units,
    time zone and label, devices); see below.
 7. **JSON Schema** of the metadata and of the mapping file, and a list of every canonical column, in [`schema/`](schema) for tools that are not written in Python.
-8. **Command line**: `scada-schema fetch | load | import | validate | qc | convert | jsonschema | spec | study`.
+8. **Resampling** to a coarser interval with rules by signal kind (mean, vector mean of angles, sum, last meter reading, pooled standard deviation, coverage threshold): `scada-schema resample`.
+9. **Command line**: `scada-schema fetch | load | import | resample | validate | qc | convert | jsonschema | spec | study`.
 
 ## Results
 

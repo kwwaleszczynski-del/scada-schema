@@ -7,6 +7,7 @@ Usage:
     scada-schema validate out/kelmarsh_2019.parquet
     scada-schema qc out/kelmarsh_2019.parquet --html out/qc.html --dst-zone Europe/London
     scada-schema convert out/kelmarsh_2019.parquet --to windup --out out/windup
+    scada-schema resample plant.parquet --to 1h --out plant_1h.parquet
     scada-schema import mapping.yaml --out my_farm.parquet
     scada-schema jsonschema --out schema
     scada-schema spec > SPEC.md
@@ -156,6 +157,16 @@ def _convert(args) -> int:
     return 0
 
 
+def _resample(args) -> int:
+    from scada_schema.resample import resample
+
+    df, meta = read_parquet(args.file)
+    out, m = resample(df, meta, args.to, args.min_coverage)
+    write_parquet(out, m, args.out)
+    log.info("wrote %s: %d rows at %s (from %d at %s)", args.out, len(out), args.to, len(df), meta.interval)
+    return 0
+
+
 def _import(args) -> int:
     from scada_schema.loaders.generic import import_table, load_spec
 
@@ -238,6 +249,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--inverter", help="pvlib: inverter id")
     s.add_argument("--at", default="center", choices=["start", "center", "end"], help="pvlib: instant of the interval that indexes the weather")
     s.set_defaults(func=_convert)
+
+    s = sub.add_parser("resample", help="move a canonical file to a coarser interval (rules by signal kind)")
+    s.add_argument("file")
+    s.add_argument("--to", required=True, choices=["10min", "15min", "30min", "1h"])
+    s.add_argument("--min-coverage", type=float, default=0.8, help="share of source intervals needed to fill a target interval")
+    s.add_argument("--out", required=True)
+    s.set_defaults(func=_resample)
 
     s = sub.add_parser("import", help="turn your own export into a canonical Parquet file with a YAML mapping")
     s.add_argument("mapping")

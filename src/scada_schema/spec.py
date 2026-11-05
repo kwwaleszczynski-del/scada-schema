@@ -135,6 +135,12 @@ def render_spec() -> str:
         "`scada-schema import mapping.yaml` builds a canonical table from a CSV, Excel or Parquet export with a YAML mapping (see `scada_schema.loaders.generic`). "
         "JSON Schema files of the metadata and of the mapping and a list of all canonical columns are in `schema/` (`scada-schema jsonschema`).",
         "",
+        "## Resampling",
+        "",
+        "`resample(df, meta, to)` goes to a longer interval that is a multiple of the source's. Rules by signal kind: mean; vector mean for angles; sum for energies; "
+        "last reading for meter counters; most frequent value for status; minimum of minima and maximum of maxima; pooled standard deviation "
+        "(mean of the variances plus variance of the means). A target interval needs at least 80 % of its source intervals (`min_coverage`) or it is missing.",
+        "",
         "## Versioning",
         "",
         f"The schema version is `{SCHEMA_VERSION}`. A new signal or profile is a minor version; a change of a unit, a sign or a name is a major "
