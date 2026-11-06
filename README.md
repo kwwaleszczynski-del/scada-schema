@@ -1,6 +1,6 @@
 # scada-schema: an open data standard for wind and PV SCADA
 
-[![tests](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/scada-schema.svg)](https://pypi.org/project/scada-schema/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/LICENSE)
+[![tests](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/scada-schema.svg)](https://pypi.org/project/scada-schema/) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24004701.svg)](https://doi.org/10.5281/zenodo.24004701) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/LICENSE)
 
 **Project page with the results: [kwwaleszczynski-del.github.io/scada-schema](https://kwwaleszczynski-del.github.io/scada-schema/)**
 - [specification](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md) - [example quality report](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34_raw_units.html).
@@ -220,4 +220,4 @@ package's code), NREL PVDAQ (CC BY 4.0, doi 10.25984/1846021). The code is MIT l
 
 ## Citation
 
-Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). A DOI is assigned by Zenodo when the first release is archived; until then cite the repository and the version.
+Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). DOI of all versions: [10.5281/zenodo.24004701](https://doi.org/10.5281/zenodo.24004701); version 0.1.0: [10.5281/zenodo.24004702](https://doi.org/10.5281/zenodo.24004702).
