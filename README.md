@@ -1,6 +1,6 @@
 # scada-schema: an open data standard for wind and PV SCADA
 
-[![tests](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/LICENSE)
+[![tests](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml) [![PyPI](https://img.shields.io/pypi/v/scada-schema.svg)](https://pypi.org/project/scada-schema/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/LICENSE)
 
 **Project page with the results: [kwwaleszczynski-del.github.io/scada-schema](https://kwwaleszczynski-del.github.io/scada-schema/)**
 - [specification](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md) - [example quality report](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34_raw_units.html).
@@ -128,11 +128,9 @@ a property of the tool.
 
 ## Install and use
 
-Not on PyPI yet; install from GitHub:
-
 ```bash
-pip install "scada-schema @ git+https://github.com/kwwaleszczynski-del/scada-schema"
-pip install "scada-schema[converters] @ git+https://github.com/kwwaleszczynski-del/scada-schema"   # with wind-up, OpenOA and pvlib
+pip install scada-schema                  # the schema, loaders, quality control and states
+pip install "scada-schema[converters]"   # and wind-up, OpenOA and pvlib
 ```
 
 From a clone of the repository (development):
