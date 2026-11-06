@@ -11,16 +11,19 @@ requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Konrad Waleszczyński" }]
-keywords = ["scada", "wind-energy", "photovoltaics", "data-schema", "data-quality", "iec-61400-26", "wind-up", "openoa", "pvlib"]
+keywords = ["scada", "wind-energy", "photovoltaics", "data-schema", "data-quality", "iec-61400-26", "wind-up", "openoa", "pvlib", "parquet", "open-data"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
     "Typing :: Typed",
 ]
 dependencies = [
@@ -38,7 +41,7 @@ windup = ["res-wind-up>=0.5"]
 openoa = ["openoa>=3.1"]
 pvlib = ["pvlib>=0.11"]
 converters = ["scada-schema[windup,openoa,pvlib]"]
-dev = ["pytest>=8", "ruff>=0.6", "build>=1.2"]
+dev = ["pytest>=8", "ruff>=0.6", "build>=1.2", "twine>=5"]
 
 [project.scripts]
 scada-schema = "scada_schema.cli:main"
@@ -46,6 +49,9 @@ scada-schema = "scada_schema.cli:main"
 [project.urls]
 Homepage = "https://github.com/kwwaleszczynski-del/scada-schema"
 Documentation = "https://kwwaleszczynski-del.github.io/scada-schema/"
+Source = "https://github.com/kwwaleszczynski-del/scada-schema"
+Changelog = "https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CHANGELOG.md"
+Specification = "https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md"
 Issues = "https://github.com/kwwaleszczynski-del/scada-schema/issues"
 
 [tool.setuptools.dynamic]

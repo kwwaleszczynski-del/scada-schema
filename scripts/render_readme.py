@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "docs" / "README.template.md"
 STUDY = ROOT / "results" / "study.json"
 README = ROOT / "README.md"
+RELEASE = ROOT / "release.json"
+REPO = "kwwaleszczynski-del/scada-schema"
 
 
 def _ds(study: dict, name: str) -> dict:
@@ -145,9 +147,33 @@ def table_parity(study: dict) -> str:
     ])
 
 
+def release_blocks(rel: dict) -> dict[str, str]:
+    """Badges, install and citation text from release.json (the version, whether it is on PyPI and the DOIs once Zenodo has assigned them)."""
+    badges = [f"[![tests](https://github.com/{REPO}/actions/workflows/ci.yml/badge.svg)](https://github.com/{REPO}/actions/workflows/ci.yml)"]
+    if rel["published_on_pypi"]:
+        badges.append("[![PyPI](https://img.shields.io/pypi/v/scada-schema.svg)](https://pypi.org/project/scada-schema/)")
+    if rel["doi_concept"]:
+        badges.append(f"[![DOI](https://zenodo.org/badge/DOI/{rel['doi_concept']}.svg)](https://doi.org/{rel['doi_concept']})")
+    badges.append("[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/" + REPO + "/blob/main/LICENSE)")
+    if rel["published_on_pypi"]:
+        install = "```bash\npip install scada-schema                  # the schema, loaders, quality control and states\npip install \"scada-schema[converters]\"   # and wind-up, OpenOA and pvlib\n```"
+    else:
+        install = (f"Not on PyPI yet; install from GitHub:\n\n```bash\npip install \"scada-schema @ git+https://github.com/{REPO}\"\n"
+                   f"pip install \"scada-schema[converters] @ git+https://github.com/{REPO}\"   # with wind-up, OpenOA and pvlib\n```")
+    cite = (f"Cite the software through [CITATION.cff](https://github.com/{REPO}/blob/main/CITATION.cff) (GitHub's \"Cite this repository\" reads it). ")
+    if rel["doi_concept"]:
+        cite += f"DOI of all versions: [{rel['doi_concept']}](https://doi.org/{rel['doi_concept']})"
+        if rel["doi_version"]:
+            cite += f"; version {rel['version']}: [{rel['doi_version']}](https://doi.org/{rel['doi_version']})"
+        cite += "."
+    else:
+        cite += "A DOI is assigned by Zenodo when the first release is archived; until then cite the repository and the version."
+    return {"BADGES": " ".join(badges), "INSTALL": install, "CITATION": cite}
+
+
 def render(template: str, study: dict) -> str:
     nums = numbers(study)
-    blocks = {"TABLE_DATASETS": table_datasets(study), "TABLE_CHECKS": table_checks(study), "TABLE_IEC": table_iec(study)}
+    blocks = {**release_blocks(json.loads(RELEASE.read_text(encoding="utf-8"))), "TABLE_DATASETS": table_datasets(study), "TABLE_CHECKS": table_checks(study), "TABLE_IEC": table_iec(study)}
     if "parity" in study:
         blocks["TABLE_PARITY"] = table_parity(study)
     out = template

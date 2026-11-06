@@ -87,3 +87,60 @@ def test_study_numbers_are_reproducible(study, name, tmp_path):
     want = next(d for d in study["datasets"] if d["name"] == name)
     for key in ("rows", "devices", "signals", "first", "last", "validation", "qc"):
         assert entry[key] == want[key], key
+
+
+# ----------------------------------------------------------------------------------------------- release metadata
+
+# built from pieces so that this file does not itself contain what it forbids
+PRIVATE = re.compile("(?<![a-z])" + "er" + "gy" + "(?![a-z])|@" + "er" + "gy|" + "konrad" + r"\." + "waleszczynski", re.I)
+
+
+def _release():
+    return json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
+
+
+def test_version_is_the_same_everywhere():
+    from scada_schema import __version__
+
+    v = _release()["version"]
+    assert v == __version__
+    assert f"version: {v}" in (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+    assert f"## [{v}]" in (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+
+
+def test_dois_are_well_formed_and_consistent_once_assigned():
+    rel = _release()
+    cff = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+    for key in ("doi_concept", "doi_version"):
+        if rel[key] is not None:
+            assert re.fullmatch(r"10\.5281/zenodo\.\d+", rel[key]), f"{key} is not a Zenodo DOI"
+            assert rel[key] in cff, f"{key} is not in CITATION.cff"
+    if rel["doi_version"]:
+        assert rel["doi_concept"], "a version DOI needs the concept DOI"
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    placeholder = "A DOI is assigned by Zenodo when the first release is archived"
+    assert (placeholder in readme) == (rel["doi_concept"] is None)
+
+
+def test_pypi_flag_matches_the_readme():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    on_pypi = _release()["published_on_pypi"]
+    assert ("Not on PyPI yet" not in readme) == on_pypi
+    assert ("img.shields.io/pypi/v/scada-schema" in readme) == on_pypi
+
+
+def test_release_workflow_uses_trusted_publishing_and_no_token():
+    wf = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "id-token: write" in wf and "name: pypi" in wf and "PYPI_PUBLISH" in wf and "pypa/gh-action-pypi-publish" in wf
+    assert "secrets." not in wf and "password" not in wf.lower() and "TOKEN" not in wf.replace("token anywhere", "")
+
+
+def test_release_metadata_is_valid_and_private_free():
+    z = json.loads((ROOT / ".zenodo.json").read_text(encoding="utf-8"))
+    assert z["upload_type"] == "software" and z["license"] == "MIT" and z["creators"] == [{"name": "Waleszczyński, Konrad"}]
+    assert any(r["identifier"].startswith("10.5281/zenodo.") and r["relation"] == "requires" for r in z["related_identifiers"])
+    for f in (".zenodo.json", "CITATION.cff", "pyproject.toml", "release.json", "docs/RELEASING.md"):
+        text = (ROOT / f).read_text(encoding="utf-8")
+        assert not PRIVATE.search(text), f
+        emails = [e for e in re.findall(r"[\w.+-]+@[\w-]+\.[\w.]+", text) if not e.endswith("users.noreply.github.com")]
+        assert not emails, (f, emails)

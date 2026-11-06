@@ -1,13 +1,19 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
-title: "scada-schema: an open data standard for wind and PV SCADA"
+message: "If you use this software, please cite it using the metadata below."
 type: software
+title: "scada-schema: an open data standard for wind and PV SCADA"
+abstract: >-
+  One table schema for wind turbine and PV SCADA (names, units, sign and angle conventions, UTC interval start, device types),
+  loaders that read open datasets (Kelmarsh, Penmanshiel, Hill of Towie, La Haute Borne, CARE to Compare, NREL PVDAQ) from their
+  original files, a loader driven by a YAML mapping for other exports, resampling, 15 data quality checks with an HTML report,
+  mapping of status codes to IEC 61400-26 categories, and converters to wind-up, OpenOA and pvlib with parity checks.
 authors:
   - family-names: "Waleszczyński"
     given-names: "Konrad"
 version: 0.1.0
 license: MIT
 repository-code: "https://github.com/kwwaleszczynski-del/scada-schema"
+url: "https://kwwaleszczynski-del.github.io/scada-schema/"
 keywords:
   - SCADA
   - wind energy
@@ -15,3 +21,12 @@ keywords:
   - data schema
   - data quality
   - IEC 61400-26
+  - open data
+references:
+  - type: software
+    title: "res-asset-kpi: key performance indicators for operating PV, wind and battery assets"
+    authors:
+      - family-names: "Waleszczyński"
+        given-names: "Konrad"
+    doi: 10.5281/zenodo.23742958
+    repository-code: "https://github.com/kwwaleszczynski-del/res-asset-kpi"

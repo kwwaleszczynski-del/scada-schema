@@ -1,9 +1,9 @@
 # scada-schema: an open data standard for wind and PV SCADA
 
-[![tests](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml)
+[![tests](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/kwwaleszczynski-del/scada-schema/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/LICENSE)
 
 **Project page with the results: [kwwaleszczynski-del.github.io/scada-schema](https://kwwaleszczynski-del.github.io/scada-schema/)**
-- [specification](SPEC.md) - [example quality report](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34_raw_units.html).
+- [specification](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md) - [example quality report](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34_raw_units.html).
 
 SCADA exports from two wind farms never look alike: columns named after a vendor's tag list, power in hectowatts or watts, time in local
 time or at the end of the interval, a status code that only the turbine manual explains. Every analysis tool then starts with its own
@@ -17,7 +17,7 @@ here is a certified implementation of an IEC standard.
 
 ## What is in it
 
-1. **Schema** ([SPEC.md](SPEC.md), generated from the code): 40 canonical signals (31 in the wind profile, 23 in the PV profile),
+1. **Schema** ([SPEC.md](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md), generated from the code): 40 canonical signals (31 in the wind profile, 23 in the PV profile),
    one row per device and interval, `timestamp` in UTC at the start of the interval, canonical units, power positive into the grid, compass
    angles clockwise from true north. Minimum, maximum and standard deviation columns where a source has them. The metadata (profile, interval, the
    time zone and label of the *source*, devices with ratings and positions, licence, every conversion the loader made) are stored inside the
@@ -35,7 +35,7 @@ here is a certified implementation of an IEC standard.
 5. **Converters** to wind-up, OpenOA and pvlib and the parity checks below.
 6. **Your own data without code**: `scada-schema import mapping.yaml` turns a CSV, Excel or Parquet export into a canonical table from a YAML mapping (columns, units,
    time zone and label, devices); see below.
-7. **JSON Schema** of the metadata and of the mapping file, and a list of every canonical column, in [`schema/`](schema) for tools that are not written in Python.
+7. **JSON Schema** of the metadata and of the mapping file, and a list of every canonical column, in [`schema/`](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/schema) for tools that are not written in Python.
 8. **Resampling** to a coarser interval with rules by signal kind (mean, vector mean of angles, sum, last meter reading, pooled standard deviation, coverage threshold): `scada-schema resample`.
 9. **Command line**: `scada-schema fetch | load | import | resample | validate | qc | convert | jsonschema | spec | study`.
 
@@ -128,6 +128,15 @@ a property of the tool.
 
 ## Install and use
 
+Not on PyPI yet; install from GitHub:
+
+```bash
+pip install "scada-schema @ git+https://github.com/kwwaleszczynski-del/scada-schema"
+pip install "scada-schema[converters] @ git+https://github.com/kwwaleszczynski-del/scada-schema"   # with wind-up, OpenOA and pvlib
+```
+
+From a clone of the repository (development):
+
 ```bash
 pip install -e ".[converters]"          # core: pip install -e .
 ```
@@ -158,7 +167,7 @@ Raw files are looked for in the folder given with `--data-dir`, then in `$SCADA_
 
 ## Your own data
 
-A loader for a new export is a mapping file, not code (examples: [wind, stacked CSV](docs/examples/wind_semicolon.yaml), [PV, wide CSV](docs/examples/pv_wide.yaml)):
+A loader for a new export is a mapping file, not code (examples: [wind, stacked CSV](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/docs/examples/wind_semicolon.yaml), [PV, wide CSV](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/docs/examples/pv_wide.yaml)):
 
 ```yaml
 name: my_wind_farm
@@ -184,7 +193,7 @@ scada-schema qc my_farm.parquet --html my_farm_qc.html
 
 Time stamps are converted to UTC with the daylight saving rules of the zone (the repeated autumn hour is resolved by order), moved to the start of the interval and checked against the
 grid; units are converted through the registry of res-asset-kpi; every conversion lands in the metadata. A wrong time zone, a missing column or a unit that does not fit the signal stops
-the import with a message that names it. [`schema/mapping.schema.json`](schema/mapping.schema.json) lets a YAML editor complete and check the mapping.
+the import with a message that names it. [`schema/mapping.schema.json`](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/schema/mapping.schema.json) lets a YAML editor complete and check the mapping.
 
 ## What is not verified
 
@@ -210,3 +219,7 @@ pytest -q                                       # tests with real data: set SCAD
 Datasets and licences: La Haute Borne (ENGIE, Etalab open licence as stated by ENGIE, not re-verified; read from the copy shipped with OpenOA, BSD-3-Clause repository), Kelmarsh and Penmanshiel (Cubico Sustainable Investments, CC BY 4.0, doi 10.5281/zenodo.5841833 and 10.5281/zenodo.5946807), Hill of Towie (RES, CC BY 4.0,
 doi 10.5281/zenodo.14870021), CARE to Compare (CC BY-SA 4.0, doi 10.5281/zenodo.15846963; the share-alike condition applies to the data and to datasets derived from it, not to this
 package's code), NREL PVDAQ (CC BY 4.0, doi 10.25984/1846021). The code is MIT licensed.
+
+## Citation
+
+Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). A DOI is assigned by Zenodo when the first release is archived; until then cite the repository and the version.

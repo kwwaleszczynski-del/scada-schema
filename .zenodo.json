@@ -1,8 +1,68 @@
 {
   "title": "scada-schema: an open data standard for wind and PV SCADA",
   "upload_type": "software",
-  "description": "One table schema for wind turbine and PV SCADA, loaders for Kelmarsh, Penmanshiel, Hill of Towie, CARE to Compare and NREL PVDAQ, data quality checks with an HTML report, IEC 61400-26 state mapping, and converters to wind-up, OpenOA and pvlib with parity checks.",
-  "creators": [{"name": "Waleszczyński, Konrad"}],
+  "description": "<p>One table schema for wind turbine and PV SCADA (canonical signal names, units, sign and angle conventions, UTC interval start, device types), loaders that read open datasets from their original files (Kelmarsh, Penmanshiel, Hill of Towie, La Haute Borne, CARE to Compare, NREL PVDAQ), a loader driven by a YAML mapping for other exports, resampling, 15 data quality checks with a self-contained HTML report, a mapping of status codes to IEC 61400-26 categories, and converters to wind-up, OpenOA and pvlib with parity checks. The formulas and category names follow public descriptions; nothing here is a certified implementation of an IEC standard. The package does not redistribute the datasets; CARE to Compare is licensed CC BY-SA 4.0.</p><p>Documentation: https://kwwaleszczynski-del.github.io/scada-schema/</p>",
+  "creators": [
+    {
+      "name": "Waleszczyński, Konrad"
+    }
+  ],
   "license": "MIT",
-  "keywords": ["SCADA", "wind energy", "photovoltaics", "data schema", "data quality", "IEC 61400-26"]
+  "access_right": "open",
+  "keywords": [
+    "SCADA",
+    "wind energy",
+    "photovoltaics",
+    "data schema",
+    "data quality",
+    "IEC 61400-26",
+    "open data"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://kwwaleszczynski-del.github.io/scada-schema/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://pypi.org/project/scada-schema/",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/kwwaleszczynski-del/scada-schema",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.23742958",
+      "relation": "requires",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.5281/zenodo.5841833",
+      "relation": "references",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.5281/zenodo.5946807",
+      "relation": "references",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.5281/zenodo.14870021",
+      "relation": "references",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.5281/zenodo.15846963",
+      "relation": "references",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.25984/1846021",
+      "relation": "references",
+      "scheme": "doi"
+    }
+  ]
 }

@@ -1,0 +1,6 @@
+include CHANGELOG.md
+include CITATION.cff
+include SPEC.md
+include release.json
+graft schema
+recursive-include tests *.py
