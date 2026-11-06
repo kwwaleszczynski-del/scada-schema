@@ -11,6 +11,7 @@ authors:
   - family-names: "Waleszczyński"
     given-names: "Konrad"
 version: 0.1.0
+date-released: "2026-11-06"
 license: MIT
 repository-code: "https://github.com/kwwaleszczynski-del/scada-schema"
 url: "https://kwwaleszczynski-del.github.io/scada-schema/"
