@@ -21,6 +21,7 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 from importlib import resources
 
 import numpy as np
@@ -44,6 +45,8 @@ __all__ = [
     "map_labels",
     "project_events",
 ]
+
+log = logging.getLogger(__name__)
 
 IEC_CATEGORIES: dict[str, str] = dict(_CATEGORIES)
 """Category name -> description."""
@@ -78,8 +81,11 @@ def _norm_code(codes: pd.Series) -> pd.Series:
     return codes.astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
 
 
-def map_codes(codes: pd.Series, table: str | pd.DataFrame) -> pd.Series:
-    """Category of every status code; ``None`` for codes without a category or not in the table.
+def map_codes(codes: pd.Series, table: str | pd.DataFrame, uncategorised: str | None = None) -> pd.Series:
+    """Category of every status code; ``None`` for codes not in the table.
+
+    Codes that are in the table but have no category (information and warnings, e.g. "System OK", "Wind < start wind") give
+    ``uncategorised`` (``None`` by default; pass ``"full_performance"`` to read them as operating).
 
     Parameters
     ----------
@@ -89,7 +95,7 @@ def map_codes(codes: pd.Series, table: str | pd.DataFrame) -> pd.Series:
         A shipped code table name or a frame with ``code`` and ``category`` columns.
     """
     t = load_code_table(table) if isinstance(table, str) else table
-    lookup = dict(zip(_norm_code(t["code"]), t["category"].replace("", None), strict=True))
+    lookup = dict(zip(_norm_code(t["code"]), t["category"].replace("", uncategorised), strict=True))
     return _norm_code(codes).map(lookup).astype(object).where(lambda s: s.notna(), None)
 
 
@@ -182,7 +188,19 @@ def categories_for_intervals(events: pd.DataFrame, table: pd.DataFrame, interval
     """
     ev = events.dropna(subset=["category"])
     cat = project_events(ev, table, interval, ("category",), only)["category"]
-    return cat.where(cat.notna(), "full_performance").where(table["timestamp"].notna(), None)
+    return _default_state(cat, table)
+
+
+def _has_data(table: pd.DataFrame) -> pd.Series:
+    """True for rows that carry a measurement of power or wind speed (all rows when the table has neither column)."""
+    cols = [c for c in ("p_ac", "p_ac_rel", "wind_speed") if c in table.columns]
+    return table[cols].notna().any(axis=1) if cols else pd.Series(True, index=table.index)
+
+
+def _default_state(cat: pd.Series, table: pd.DataFrame) -> pd.Series:
+    """Fill intervals no event covers: ``full_performance`` where the turbine logged something, ``no_info`` where the row holds no measurement."""
+    out = cat.where(cat.notna(), "full_performance")
+    return out.where(_has_data(table), "no_info").astype(object)
 
 
 def attach_states(loaded, only: dict | None = None):
@@ -190,13 +208,14 @@ def attach_states(loaded, only: dict | None = None):
 
     Uses the stop events (``status == "Stop"``) that carry an IEC category; see
     [`project_events`][scada_schema.states.project_events] for the rule. Intervals without a stop event are
-    ``full_performance``.
+    ``full_performance`` when the row holds a measurement of power or wind speed and ``no_info`` when it does not (a row
+    with nothing in it says nothing about the turbine).
     """
     only = {"status": "Stop"} if only is None else only
     ev = loaded.events.dropna(subset=["category"])
     hit = project_events(ev, loaded.table, loaded.meta.interval, ("category", "code"), only)
     loaded.table["status_code"] = hit["code"]
-    loaded.table["iec_category"] = hit["category"].where(hit["category"].notna(), "full_performance")
+    loaded.table["iec_category"] = _default_state(hit["category"], loaded.table)
     return loaded
 
 
@@ -209,11 +228,16 @@ def availability_from_table(
 ):
     """Time-based and energy-based availability of a canonical table through ``res_asset_kpi``.
 
-    Needs ``iec_category``; ``e_export`` (kWh per interval) is used as actual energy when present. Lost energy is not
+    Needs ``iec_category``. Intervals **without** a category are left out of the calculation (they are neither available nor
+    unavailable); the share that was left out is logged as a warning. ``e_export`` (kWh per interval) is used as actual energy when present. Lost energy is not
     known here, so the energy-based figure is the share of actual energy in the categories counted available; use
     [`res_asset_kpi.wind.availability`][res_asset_kpi.wind.availability] directly with a lost-energy estimate for contract work.
     """
     t = table if device is None else table[table["device_id"] == device]
+    missing = t["iec_category"].isna()
+    if missing.any():
+        log.warning("availability: %.1f %% of the intervals have no iec_category and are left out", 100 * missing.mean())
+        t = t[~missing]
     h = pd.Timedelta(interval) / pd.Timedelta("1h")
     actual = t["e_export"] if "e_export" in t.columns else None
     tot = category_totals(t["iec_category"].to_numpy(), h, actual_kwh=None if actual is None else actual.to_numpy())

@@ -29,9 +29,9 @@ class QCConfig(BaseModel):
         "t_gearbox_oil": 12.0, "t_gearbox_bearing": 12.0, "t_gen_winding": 12.0, "t_gen_bearing": 12.0,
         "t_main_bearing": 12.0, "t_transformer": 12.0, "t_inverter": 12.0, "t_module": 12.0, "humidity": 24.0,
         "pressure": 24.0, "poa": 3.0, "ghi": 3.0, "dni": 3.0, "dhi": 3.0, "v_ac": 12.0, "power_factor": 24.0,
-        "p_ac": 6.0, "p_dc": 6.0, "v_dc": 6.0, "rotor_speed": 6.0})
+        "p_ac": 6.0, "p_ac_rel": 6.0, "p_dc": 6.0, "v_dc": 6.0, "rotor_speed": 6.0})
     flatline_ignore_zero: list[str] = Field(default_factory=lambda: [
-        "p_ac", "p_dc", "poa", "ghi", "dni", "dhi", "rotor_speed", "wind_speed", "wind_speed_2", "v_dc", "wind_dir_rel"])
+        "p_ac", "p_ac_rel", "p_dc", "poa", "ghi", "dni", "dhi", "rotor_speed", "wind_speed", "wind_speed_2", "v_dc", "wind_dir_rel"])
     # spikes (Hampel filter) on slowly varying signals
     spike_signals: list[str] = Field(default_factory=lambda: [
         "t_amb", "t_nacelle", "t_gearbox_oil", "t_gearbox_bearing", "t_gen_winding", "t_gen_bearing", "t_main_bearing",

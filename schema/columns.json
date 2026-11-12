@@ -173,6 +173,134 @@
    "unit": "kvar"
   },
   {
+   "description": "active power as a number scaled by the source (anonymised, not kW; the rated power is not published)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "p_ac_rel",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "min of the interval: active power as a number scaled by the source (anonymised, not kW; the rated power is not published)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "p_ac_rel__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "max of the interval: active power as a number scaled by the source (anonymised, not kW; the rated power is not published)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "p_ac_rel__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "std of the interval: active power as a number scaled by the source (anonymised, not kW; the rated power is not published)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "p_ac_rel__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "reactive power as a number scaled by the source (anonymised, not kvar)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "mean",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "q_ac_rel",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "min of the interval: reactive power as a number scaled by the source (anonymised, not kvar)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "min of the interval",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "q_ac_rel__min",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "max of the interval: reactive power as a number scaled by the source (anonymised, not kvar)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "max of the interval",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "q_ac_rel__max",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
+   "description": "std of the interval: reactive power as a number scaled by the source (anonymised, not kvar)",
+   "devices": [
+    "turbine"
+   ],
+   "dtype": "float32",
+   "kind": "std of the interval",
+   "max": 5.0,
+   "min": -5.0,
+   "name": "q_ac_rel__std",
+   "profiles": [
+    "wind"
+   ],
+   "required": false,
+   "unit": "1"
+  },
+  {
    "description": "displacement power factor, signed like q_ac",
    "devices": [
     "turbine",
@@ -717,7 +845,7 @@
    "unit": "A"
   },
   {
-   "description": "wind speed at the nacelle anemometer",
+   "description": "wind speed at the nacelle anemometer (wind) or the met station (wind and PV)",
    "devices": [
     "turbine",
     "met",
@@ -729,13 +857,14 @@
    "min": 0,
    "name": "wind_speed",
    "profiles": [
-    "wind"
+    "wind",
+    "pv"
    ],
    "required": false,
    "unit": "m/s"
   },
   {
-   "description": "min of the interval: wind speed at the nacelle anemometer",
+   "description": "min of the interval: wind speed at the nacelle anemometer (wind) or the met station (wind and PV)",
    "devices": [
     "turbine",
     "met",
@@ -747,13 +876,14 @@
    "min": 0,
    "name": "wind_speed__min",
    "profiles": [
-    "wind"
+    "wind",
+    "pv"
    ],
    "required": false,
    "unit": "m/s"
   },
   {
-   "description": "max of the interval: wind speed at the nacelle anemometer",
+   "description": "max of the interval: wind speed at the nacelle anemometer (wind) or the met station (wind and PV)",
    "devices": [
     "turbine",
     "met",
@@ -765,13 +895,14 @@
    "min": 0,
    "name": "wind_speed__max",
    "profiles": [
-    "wind"
+    "wind",
+    "pv"
    ],
    "required": false,
    "unit": "m/s"
   },
   {
-   "description": "std of the interval: wind speed at the nacelle anemometer",
+   "description": "std of the interval: wind speed at the nacelle anemometer (wind) or the met station (wind and PV)",
    "devices": [
     "turbine",
     "met",
@@ -783,7 +914,8 @@
    "min": 0,
    "name": "wind_speed__std",
    "profiles": [
-    "wind"
+    "wind",
+    "pv"
    ],
    "required": false,
    "unit": "m/s"

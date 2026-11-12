@@ -28,6 +28,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from res_asset_kpi.timeseries import to_utc
 
@@ -115,24 +116,57 @@ def read_system(path: Path, system: int, years: list[int] | None = None) -> pd.D
     raw = pd.concat(frames, ignore_index=True)
     t = to_utc(pd.to_datetime(raw["measured_on"]).dt.round("15min"), TZ)
     raw = raw.set_index(t.rename("timestamp")).drop(columns="measured_on")
-    return raw[~raw.index.duplicated()].sort_index()
+    out = raw[~raw.index.duplicated()].sort_index()
+    out.attrs["dropped"] = len(raw) - len(out)  # rows that fall on the same 15-minute stamp after rounding
+    return out
 
 
-def detect_power_unit_switch(power: pd.Series, poa: pd.Series, min_decades: float = 1.5) -> pd.Timestamp | None:
-    """First time the power channel reports watts instead of hectowatts, found from the power to irradiance ratio.
+def detect_power_unit_switch(power: pd.Series, poa: pd.Series, capacity_kwp: float | None = None, min_decades: float = 1.5) -> pd.Timestamp | None:
+    """First time the power channel reports watts instead of hectowatts; ``None`` when it never does.
 
-    The daily median of power over plane-of-array irradiance (daylight only) steps up by a factor of 100 at the switch. The
-    day of the step is found as in the quality control ([`level_step`][scada_schema._steps.level_step], a step of at least
-    ``min_decades``) and then refined to the first interval whose ratio is above the midpoint level. ``None`` when there is no
-    such step.
+    Two pieces of evidence, in this order:
+
+    1. a **step** in the daily median of power over plane-of-array irradiance (daylight only) of a factor of 100, found as in the quality
+       control ([`level_step`][scada_schema._steps.level_step], at least ``min_decades``) and refined to the first interval above the midpoint
+       level. This needs about two weeks of data on each side of the switch.
+    2. the **absolute level** against the array's rating (``capacity_kwp``): a rooftop array does not deliver more than about its rating, so a
+       day whose 99th percentile, read as hectowatts, exceeds five times the rating is in watts. This decides records that hold no step: one
+       entirely after the switch (the whole record is watts: the first time stamp is returned), one entirely before (``None``), and a short window
+       around the switch.
+
+    Without ``capacity_kwp`` only the first piece is available, and a record without a step is read as hectowatts.
     """
     lv = daily_log_ratio(power, poa)
     hit = None if lv is None else level_step(lv, 7, min_decades)
-    if hit is None or hit[1] < 0:  # only a rise is hectowatts -> watts
+    if hit is not None and hit[1] > 0:  # only a rise is hectowatts -> watts
+        day, step = hit
+        before = lv[lv.index < day].tail(7).median()
+        return _refine(power, poa, day, 10 ** (before + step / 2))
+    if not capacity_kwp:
         return None
-    day, step = hit
-    before = lv[lv.index < day].tail(7).median()
-    thr = 10 ** (before + step / 2)
+    p = power.where(power > 0)
+    g = p.groupby(p.index.floor("D"))
+    p99, n = g.quantile(0.99), g.count()
+    p99 = p99[n >= 8]
+    if p99.empty:
+        return None
+    is_w = (p99 * 0.1 / capacity_kwp) > 5.0
+    if not is_w.any():
+        return None
+    first_w = is_w.index[int(np.argmax(is_w.to_numpy()))]
+    if first_w == is_w.index[0]:
+        return power.index.min()  # the whole record is in watts
+    # a mixed record too short for a step: put the switch on the first day in watts, refined by the irradiance ratio when both sides have data
+    r = (power.where(power > 0) / poa.reindex(power.index).where(poa.reindex(power.index) > 50)).dropna()
+    days = r.index.floor("D")
+    med_h, med_w = r[days < first_w].median(), r[days >= first_w].median()
+    if np.isfinite(med_h) and np.isfinite(med_w) and med_w > 10 * med_h:
+        return _refine(power, poa, first_w, float(np.sqrt(med_h * med_w)))
+    return first_w
+
+
+def _refine(power: pd.Series, poa: pd.Series, day: pd.Timestamp, thr: float) -> pd.Timestamp:
+    """The first interval around ``day`` whose power over irradiance is above ``thr`` and stays there (the day itself if there is none)."""
     win = power[(power.index >= day - pd.Timedelta("2D")) & (power.index < day + pd.Timedelta("2D"))]
     ratio = (win.where(win > 0) / poa.reindex(win.index).where(poa.reindex(win.index) > 50)).dropna()
     up = (ratio > thr).to_numpy()
@@ -146,13 +180,14 @@ def load(data_dir: str | Path | None = None, system: int = 34, years: list[int] 
     """One PVDAQ system as a canonical PV table (inverters and the met station), see the module description."""
     cfg = SYSTEMS[system]
     raw = read_system(raw_dir(NAME, data_dir), system, years)
+    removed = raw.attrs.get("dropped", 0)
     poa = _column(raw, MET["poa"])
     parts = []
     switch_dates = {}
     step = pd.Timedelta("15min")
     for inv, cols in cfg["inverters"].items():
         p_raw = _column(raw, cols["p_ac"])
-        switch = detect_power_unit_switch(p_raw, poa) if (p_raw is not None and poa is not None) else None
+        switch = detect_power_unit_switch(p_raw, poa, cfg["capacity"][inv]) if p_raw is not None and poa is not None else None
         switch_dates[inv] = switch
         factor = pd.Series(0.1, index=raw.index)  # hectowatts to kW
         if fix_units and switch is not None:
@@ -185,15 +220,23 @@ def load(data_dir: str | Path | None = None, system: int = 34, years: list[int] 
     table = finalise(table.dropna(axis=1, how="all"))
     first = next((v for v in switch_dates.values() if v is not None), None)
     if not fix_units:
-        power_note = "p_ac, p_dc: all values read as hectowatts (x0.1 to kW); a switch to watts in the record is NOT corrected"
+        power_note = "p_ac, p_dc: all values read as hectowatts (x0.1 to kW); a change to watts in the record is NOT corrected"
     elif first is None:
-        power_note = "p_ac, p_dc: hectowatts to kW (x0.1); no switch to watts found in the record"
+        power_note = "p_ac, p_dc: hectowatts to kW (x0.1); the record shows no change to watts, and the level against the rating confirms hectowatts"
+    elif first <= raw.index.min():
+        power_note = "p_ac, p_dc: watts to kW (x0.001) for the whole record: against the array rating the values are 100 times too large as hectowatts"
     else:
-        power_note = f"p_ac, p_dc: hectowatts to kW (x0.1) until {first:%Y-%m-%d %H:%M} UTC, watts to kW (x0.001) from then on"
+        power_note = (f"p_ac, p_dc: hectowatts to kW (x0.1) before {first - step:%Y-%m-%d %H:%M} UTC (start of the first interval in watts), "
+                      "watts to kW (x0.001) from then on")
+    ac = table.loc[table["device_id"].isin(cfg["inverters"]), "p_ac"].astype("float64")
+    cap = sum(cfg["capacity"].values())
+    level = f"; 99th percentile of the AC power of the inverters after conversion: {float(ac.quantile(0.99)) / (cap / len(cfg['capacity'])):.2f} of the array's kWp"
+    power_note += level
     conversions = [
         power_note, "t_amb, t_module: degrees Fahrenheit to degrees Celsius", "wind_speed: mph to m/s",
         "power_factor: raw value / 1000",
         "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval",
+        *([f"{removed} rows that fall on the same 15-minute stamp after rounding dropped, the first kept"] if removed else []),
     ]
     devices = [Device(id=i, type="inverter", capacity_kwp=cfg["capacity"][i], lat=LAT, lon=LON, tilt_deg=cfg["tilt"],
                       azimuth_deg=cfg["azimuth"]) for i in cfg["inverters"]]
@@ -205,4 +248,4 @@ def load(data_dir: str | Path | None = None, system: int = 34, years: list[int] 
                "Ambient temperature, wind speed and wind direction sensors are stuck for long stretches (see the quality report).",
                "Tilt and azimuth are those of the array where known; the irradiance sensor of system 34 has a tilt of 5 degrees."],
     )
-    return Loaded(table, meta)
+    return Loaded(table, meta, removed={"duplicate_rows": removed})

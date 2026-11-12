@@ -70,7 +70,8 @@ hands the table to wind-up, OpenOA and pvlib, with a check that the tools give t
 
 <h2 class="section">The datasets and what the checks found</h2>
 <p class="lead">Every row below was loaded from the dataset's original files, validated against the schema and checked; the link opens the
-full HTML quality report of that table.</p>
+full HTML quality report of that table. "Valid" means the structure follows the schema; it says nothing about units or values, which the checks examine. Two rows are
+demonstrations on data that is also in the study, and are not counted in the totals.</p>
 <div class="grid">
   <div class="card wide"><div class="wrap"><table id="datasets"></table></div></div>
   <div class="card wide"><h3>Findings by severity</h3><div id="sev" class="chart tall"></div>
@@ -137,12 +138,12 @@ const ds = n => D.datasets.find(d => d.name === n);
 })();
 
 (function datasets() {
-  const head = ["Dataset", "Source (licence)", "Profile", "Interval", "Rows", "Devices", "Signals", "Schema", "Errors", "Warnings", "Info"];
-  const rows = D.datasets.map(d => `<tr><td><a href="qc/${esc(d.name)}.html">${esc(d.name)}</a></td><td class="l">${esc(d.source)} (${esc(d.license)})</td>
+  const head = ["Dataset", "Source (licence)", "Profile", "Interval", "Rows", "Devices", "Signals", "Schema (structure only)", "Removed by the loader", "Errors", "Warnings", "Info"];
+  const rows = D.datasets.map(d => `<tr><td><a href="qc/${esc(d.name)}.html">${esc(d.name)}</a>${d.demo ? " <span class='note'>(demonstration, not counted)</span>" : ""}</td><td class="l">${esc(d.source)} (${esc(d.license)})</td>
     <td>${esc(d.profile)}</td><td>${esc(d.interval)}</td><td>${f0(d.rows)}</td><td>${d.devices}</td><td>${d.signals} + ${d.stat_columns}</td>
-    <td class="${d.validation.ok ? "ok" : "fail"}">${d.validation.ok ? "valid" : "invalid"}</td><td>${d.qc.counts.error}</td><td>${d.qc.counts.warning}</td><td>${d.qc.counts.info}</td></tr>`);
+    <td class="${d.validation.ok ? "ok" : "fail"}">${d.validation.ok ? "valid" : "invalid"}</td><td class="l">${esc(Object.entries(d.removed || {}).filter(e => e[1]).map(e => f0(e[1]) + " " + e[0].replace(/_/g, " ")).join(", ") || "none")}</td><td>${d.qc.counts.error}</td><td>${d.qc.counts.warning}</td><td>${d.qc.counts.info}</td></tr>`);
   $("datasets").innerHTML = `<thead><tr>${head.map((h, i) => `<th class="${i === 1 ? "l" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
-  const names = D.datasets.map(d => d.name.replace("_units", "").replace("hill_of_towie", "hot").replace("penmanshiel", "penman.").replace("_raw", " raw"));
+  const names = D.datasets.map(d => d.name.replace("_units", "").replace("la_haute_borne", "lhb").replace("hill_of_towie", "hot").replace("penmanshiel", "penman.").replace("_raw", " raw").replace("_as_stamped", " as stamped"));
   const mk = (k, name, color) => ({type:"bar", orientation:"h", name, y:names, x:D.datasets.map(d => d.qc.counts[k]), marker:{color}});
   Plotly.newPlot("sev", [mk("error", "error", css("--down")), mk("warning", "warning", css("--warn")), mk("info", "info", css("--s1"))],
     layout({barmode:"stack", margin:{t:10,r:10,b:60,l:80}, yaxis:{autorange:"reversed", automargin:true, gridcolor:css("--grid")}, xaxis:{title:"findings", gridcolor:css("--grid")}}), CFG);

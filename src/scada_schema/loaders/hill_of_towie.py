@@ -113,7 +113,9 @@ def _read_table(z: zipfile.ZipFile, table: str) -> pd.DataFrame:
             if have:
                 out[sig] = out[have].mean(axis=1)
             out = out.drop(columns=have)
-    return out.drop_duplicates(["device_id", "timestamp"]).set_index(["device_id", "timestamp"])
+    res = out.drop_duplicates(["device_id", "timestamp"]).set_index(["device_id", "timestamp"])
+    res.attrs["dropped"] = len(out) - len(res)
+    return res
 
 
 def _alarms(z: zipfile.ZipFile, description: Path) -> pd.DataFrame:
@@ -166,9 +168,11 @@ def load(data_dir: str | Path | None = None, years: list[int] | None = None, dev
     if not archives:
         raise FileNotFoundError(f"no Hill of Towie yearly archives for {years or 'any year'} in {d}; fetch the data first (scada-schema fetch <dataset>)")
     frames, alarms = [], []
+    removed = 0
     for y, path in archives.items():
         with zipfile.ZipFile(path) as z:
             tables = [_read_table(z, t) for t in TABLES[:3]]
+            removed += tables[0].attrs.get("dropped", 0)  # the three tables hold the same turbine-intervals: count them once
             joined = tables[0].join(tables[1:], how="outer").reset_index()
             frames.append(joined[joined["timestamp"].dt.year == y])
             alarms.append(_alarms(z, d / STATIC[1]))
@@ -190,11 +194,13 @@ def load(data_dir: str | Path | None = None, years: list[int] | None = None, dev
         conversions=["time stamps moved from the end to the start of the interval (-10 min)",
                      "pitch: mean of blades A, B, C; v_ac and i_ac: mean of the three phases; "
                      "t_gen_winding: mean of the windings 1U1, 1V1, 1W1",
-                     "shutdown_s: ShutdownDuration of the operator's file, seconds out of 600"],
+                     "shutdown_s: ShutdownDuration of the operator's file, seconds out of 600",
+                     "setpoint: the value at the end of the interval (wtc_PowerRef_endvalue), not a mean",
+                     *([f"{removed} rows with a repeated (device, time stamp) dropped, the first kept"] if removed else [])],
         notes=["No absolute wind direction in the SCADA tables used; nacelle_dir is the nacelle position relative to north.",
                "wind_speed is the wind speed of the active wind sensor (wtc_AcWindSp)."],
     )
     ev = pd.concat(alarms, ignore_index=True).drop_duplicates() if alarms else None
     if ev is None or ev.empty:
         ev = make_events(pd.DataFrame(columns=["device_id", "start", "end"]))
-    return Loaded(table, meta, ev)
+    return Loaded(table, meta, ev, removed={"duplicate_rows": removed})

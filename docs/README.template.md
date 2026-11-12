@@ -44,7 +44,13 @@ here is a certified implementation of an IEC standard.
 All numbers on this page come from `python -m scada_schema study`, which writes `results/study.json`; `tests/test_docs.py` renders this README from the
 template and that file and fails when they differ.
 
-{{n_datasets}} tables from {{n_sources}} sources ({{rows}} rows, {{n_devices}} devices) were loaded from the original files; the schema accepts {{schema_valid}}.
+{{n_datasets}} tables from {{n_sources}} sources ({{rows}} rows, {{n_devices}} devices) were loaded from the original files, plus {{n_demo}} demonstration tables that are not counted
+(PVDAQ system 34 read as hectowatts throughout, and La Haute Borne with its printed time stamps, to show what the checks find). The schema accepts {{schema_valid}} of the counted tables.
+
+**"Valid" means that the structure follows the schema**: column names, types, time stamps on the interval grid, unique and sorted keys, signals of the profile and of the device type,
+required signals. It says nothing about units or values: a demonstration table whose power is a hundredfold too large is valid by construction, and so is CARE's scaled power (stored under its own
+signal name, see below). The quality checks look at the values. The `duplicates` and `ordering` checks find nothing in the table below because the loaders sort the rows and drop repeated ones
+before the checks run; {{removed_dups}} repeated rows and {{removed_amb}} rows with an ambiguous time stamp were removed in total (column "Removed by the loader").
 
 {{TABLE_DATASETS}}
 
@@ -59,8 +65,18 @@ What the checks found on real data:
   (`{{pvdaq_loader_note}}`), and the check on the corrected table reports {{pvdaq_fixed_switch_findings}} switches.
 - **North offsets.** On Hill of Towie the nacelle position of {{hot_north_flagged}} of {{hot_north_turbines}} turbines is more than 10 degrees off the fleet mean direction;
   the largest, {{hot_north_dev}}, is {{hot_north_max}} degrees off. On Kelmarsh the largest offset is {{kel_north_max}} degrees.
-- **A real daylight saving artefact.** La Haute Borne stamps its data with the UTC offset, so the time is exact, but at both autumn changes ({{lhb_gap_dates}}) one hour is missing in UTC ({{lhb_gap_window}}, the first occurrence of
-  the repeated local hour): the source holds only one of the two repeated hours. The `dst` check, run against Europe/Paris, finds {{lhb_dst_hit}} of {{lhb_dst_total}} changes on every turbine.
+- **The La Haute Borne clock is not what its stamps say.** The printed UTC offsets follow French daylight saving time, but the series does not. Each turbine has {{lhb_rows}} rows, exactly
+  {{lhb_days}} complete days of ten-minute intervals; the hour of the daily temperature maximum is the same on the wall clock on both sides of the spring and autumn changes ({{lhb_wall}}) but moves by about an
+  hour in "UTC" as stamped ({{lhb_utc}}); at the two spring changes {{lhb_repeated}} stamps per turbine occur twice and at the autumn change one hour is missing. That is a clock that ran on standard
+  time (UTC+1) all year and was labelled as if it had followed daylight saving time. The loader reads it that way by default (`time="reconstructed"`). Two limits: UTC+1 is an inference (it is the
+  offset the file prints in winter, and the data cannot tell it from UTC+0), and the repeated spring stamps cannot be assigned to their hours (the continuity of temperature, wind speed, power
+  and yaw gives a clear winner in {{lhb_clear}} of {{lhb_cases}} cases, and the file order is no guide), so {{lhb_dropped}} rows are dropped and the metadata say so. With `time="as_stamped"` the
+  `dst` check, run against Europe/Paris, finds {{lhb_dst_hit}} of {{lhb_dst_total}} changes on every turbine (the demonstration table).
+- **CARE's power is not in kW.** The feature descriptions say kW and kvar, but the benchmark scales power-related data for anonymisation (Zenodo description of the record) and publishes no
+  rated power. The loader stores active and reactive power as `p_ac_rel` and `q_ac_rel`, dimensionless, never as kW; the wind-up and OpenOA converters refuse such a table, and the checks that
+  need a power use it as it is without a rating.
+- **PVDAQ's unit is decided without a step too.** A record entirely after the switch (or a short window around it) has no step in the power over irradiance. The loader then compares the daily 99th
+  percentile of power, read as hectowatts, with the array's rating: more than five times the rating means watts. This was run on windows before, around and after the switch for all four systems.
 - **Time elsewhere.** The three UK farms are checked against Europe/London (UTC time stamps, no artefact found); for the others the check does not apply (fixed offset or anonymised time).
   The table above shows what each dataset triggered.
 
@@ -154,11 +170,15 @@ the import with a message that names it. [`schema/mapping.schema.json`](https://
 
 - The wind-up check uses wind-up 0.5.1 (beta; its v1 input is not fixed) and the filter stage with a minimal configuration; the analysis periods in `windup_config` are placeholders
   and the pitch and generator speed ranges are estimated from the data. A full wind-up assessment was not run.
+- The hand-built inputs of the parity checks are written independently of the library's mapping code, but from the same documentation: they would not catch a column or unit that both
+  readings misunderstand. The loaders are tested in CI on slices of the real files (Kelmarsh, Hill of Towie, PVDAQ, La Haute Borne; CARE is not sliced because of its share-alike licence)
+  and on synthetic files in the original formats; the numbers of this README come from the full files, which CI does not have.
 - The code tables are written from the public code texts of the open datasets; they are not OEM documents. IEC categories are the top levels of the information model, not the whole tree.
 - The quality thresholds are defaults chosen to be conservative; they were tuned on these datasets and are not validated on others. Findings describe data, not the condition of a sensor.
 - CARE's sensor names are anonymised; the sensor tables of farms A, B and C cover the signals listed in `loaders/care.py` and each entry is checked against the benchmark's own
   description when loading. CARE time stamps are anonymised, so checks that need real time do not apply to it.
 - Hill of Towie's SCADA tables used here have no absolute wind direction; only the nacelle position is mapped.
+- La Haute Borne's time: see above; the UTC+1 reading is an inference.
 - The schema has been applied to open datasets only. Operator exports from other vendors need their own loader (a loader is a column mapping, a unit table and a time convention).
 - `pse-opendata` is not used: the schema holds SCADA, and no PSE data are needed for it.
 

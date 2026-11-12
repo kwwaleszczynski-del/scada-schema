@@ -8,15 +8,19 @@ kind            rule
 ``mean``        mean of the source intervals
 ``circular``    mean of the unit vectors (350 and 10 degrees give 0, not 180); ``__min`` and ``__max`` of angles are dropped
 ``sum``         sum (energy, seconds stopped)
-``counter``     last reading (a cumulative meter)
-``instant``     last value
+``counter``     reading at the end of the interval (a cumulative meter); missing when the last source interval has none
+``instant``     value of the last source interval; missing when it has none
 ``text``        most frequent value (status code); ``category`` the same
 ``__min/__max`` minimum of the minima, maximum of the maxima
 ``__std``       pooled standard deviation of the source intervals: the mean of the variances plus the variance of the means
 ==============  ================================================================================================
 
 A target interval is filled only when at least ``min_coverage`` of its source intervals have a value (default 0.8); otherwise it is missing, so
-that a sum over three of six intervals is not mistaken for an hour of production. Target intervals start at multiples of the target length in UTC.
+that a sum over three of six intervals is not mistaken for an hour of production. Between ``min_coverage`` and full coverage a **sum covers only the
+intervals that have a value** (it is not scaled up); ``scale_sums=True`` scales it by the number of source intervals over the number present. The
+number of partially covered target intervals is recorded in the metadata. Angles come back in the range of their signal (``wind_dir_rel`` in -180 to 180)
+and are missing where the directions cancel (the unit vectors average to zero). Extension columns (``x_*``) have no rule and are dropped; the
+metadata lists them. Target intervals start at multiples of the target length in UTC.
 
 Usage:
     hourly, meta_h = resample(df, meta, "1h")
@@ -35,7 +39,7 @@ from scada_schema.signals import SIGNALS, split_column
 __all__ = ["resample"]
 
 
-def resample(df: pd.DataFrame, meta: DatasetMeta, to: str, min_coverage: float = 0.8) -> tuple[pd.DataFrame, DatasetMeta]:
+def resample(df: pd.DataFrame, meta: DatasetMeta, to: str, min_coverage: float = 0.8, scale_sums: bool = False) -> tuple[pd.DataFrame, DatasetMeta]:
     """The table on a coarser interval, and its metadata (``interval`` changed, the step recorded in ``conversions``).
 
     Raises
@@ -57,9 +61,13 @@ def resample(df: pd.DataFrame, meta: DatasetMeta, to: str, min_coverage: float =
     plan: dict[str, str] = {}  # output column -> rule
     count_of: dict[str, str] = {}  # output column -> work column whose non-missing count decides the coverage
     base_mean = {c for c in df.columns if split_column(c)[1] is None and split_column(c)[0] in SIGNALS}
-    dropped = []
+    last_slot = pd.Series(ns % dst.value == dst.value - src.value, index=df.index)  # the row is the last source interval of its target interval
+    dropped, extension = [], []
     for col in df.columns:
-        if col in ("timestamp", "device_id") or col.startswith("x_"):
+        if col in ("timestamp", "device_id"):
+            continue
+        if col.startswith("x_"):
+            extension.append(col)
             continue
         base, stat = split_column(col)
         sig = SIGNALS.get(base)
@@ -86,7 +94,7 @@ def resample(df: pd.DataFrame, meta: DatasetMeta, to: str, min_coverage: float =
         elif sig.kind == "sum":
             work[col], plan[col], count_of[col] = v, "sum", col
         elif sig.kind in ("counter", "instant"):
-            work[col], plan[col] = v, "last"
+            work[col], plan[col] = v.where(last_slot), "max"
         else:
             work[col], plan[col], count_of[col] = v, "mean", col
     grouped = work.groupby([key["device_id"], key["bin"]], sort=True)
@@ -96,19 +104,27 @@ def resample(df: pd.DataFrame, meta: DatasetMeta, to: str, min_coverage: float =
             out[col] = grouped[col].agg(lambda s: s.mode().iloc[0] if s.notna().any() else None)
         elif how == "circ":
             sn, cs = grouped[col + "__s"].mean(), grouped[col + "__c"].mean()
-            out[col] = (np.rad2deg(np.arctan2(sn, cs)) % 360.0).where(sn.notna() & cs.notna())
+            angle = np.rad2deg(np.arctan2(sn, cs)) % 360.0
+            if (SIGNALS[split_column(col)[0]].lo or 0) < 0:
+                angle = (angle + 180.0) % 360.0 - 180.0  # the signal's own range, e.g. -180 to 180 for the vane
+            out[col] = angle.where(sn.notna() & cs.notna() & (np.hypot(sn, cs) > 1e-9))  # opposite directions cancel: no mean direction
         elif how == "std":
             var = grouped[col + "__var"].mean()
             if col + "__m" in work:
                 var = var + (grouped[col + "__m2"].mean() - grouped[col + "__m"].mean() ** 2).clip(lower=0)
             out[col] = np.sqrt(var)
-        elif how == "last":
-            out[col] = grouped[col].agg(lambda s: s.dropna().iloc[-1] if s.notna().any() else np.nan)
         else:
             out[col] = getattr(grouped[col], how)()
     # coverage: a target interval with too few source values is missing (the last reading of a counter is a reading however many came before)
+    partial = 0
     for col, wc in count_of.items():
-        out[col] = out[col].where(grouped[wc].count() >= min_coverage * n_src)
+        cnt = grouped[wc].count()
+        out[col] = out[col].where(cnt >= min_coverage * n_src)
+        if plan[col] == "sum":
+            short = out[col].notna() & (cnt < n_src)
+            partial += int(short.sum())
+            if scale_sums:
+                out[col] = out[col].where(~short, out[col] * n_src / cnt.where(cnt > 0))
     out = out.reset_index()
     out["timestamp"] = pd.to_datetime(out["bin"].astype("int64") * dst.value, unit="ns", utc=True).dt.as_unit("ns")
     out = out.drop(columns="bin")
@@ -118,5 +134,9 @@ def resample(df: pd.DataFrame, meta: DatasetMeta, to: str, min_coverage: float =
     note = f"resampled from {meta.interval} to {to} (rules by signal kind, at least {min_coverage:.0%} of the source intervals required)"
     if dropped:
         note += f"; minimum and maximum of angles dropped: {', '.join(dropped)}"
+    if extension:
+        note += f"; extension columns dropped: {', '.join(extension)}"
+    if partial:
+        note += f"; {partial} sums cover only part of their interval ({'scaled up' if scale_sums else 'not scaled'})"
     m.conversions = [*meta.conversions, note]
     return res, m

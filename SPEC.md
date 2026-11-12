@@ -34,19 +34,21 @@ A device has: `id`, `type`, `rated_kw`, `capacity_kwp`, `lat`, `lon`, `hub_heigh
 
 ### wind: wind turbines (and optionally met masts and the plant meter): power, wind, nacelle, pitch, state, temperatures
 
-Device types: turbine, met, plant. Every `turbine` must have `p_ac`, `wind_speed`.
+Device types: turbine, met, plant. Every `turbine` must have `wind_speed`.
 
 | signal | unit | kind | devices | hard limits | min, max, std | meaning |
 |---|---|---|---|---|---|---|
 | `p_ac` | kW | mean | turbine, inverter, meter, plant | -20000 to 30000 | yes | active power at the AC terminals, positive = export |
 | `q_ac` | kvar | mean | turbine, inverter, meter, plant | -20000 to 20000 | yes | reactive power, positive = export (over-excited) |
+| `p_ac_rel` | 1 | mean | turbine | -5 to 5 | yes | active power as a number scaled by the source (anonymised, not kW; the rated power is not published) |
+| `q_ac_rel` | 1 | mean | turbine | -5 to 5 | yes | reactive power as a number scaled by the source (anonymised, not kvar) |
 | `power_factor` | 1 | mean | turbine, inverter, meter, plant | -1 to 1 | yes | displacement power factor, signed like q_ac |
 | `e_export` | kWh | sum | turbine, inverter, meter, plant | -1000 to 100000 |  | energy exported during the interval |
 | `e_export_counter` | kWh | counter | turbine, inverter, meter, plant | 0 to  |  | cumulative export meter reading at the end of the interval |
 | `setpoint` | kW | mean | turbine, inverter, plant | 0 to 30000 | yes | active power set point or limit sent to the device |
 | `v_ac` | V | mean | turbine, inverter | 0 to 40000 | yes | AC voltage (line-to-line mean) |
 | `i_ac` | A | mean | turbine, inverter | -50000 to 50000 | yes | AC current (mean of phases) |
-| `wind_speed` | m/s | mean | turbine, met, plant | 0 to 80 | yes | wind speed at the nacelle anemometer |
+| `wind_speed` | m/s | mean | turbine, met, plant | 0 to 80 | yes | wind speed at the nacelle anemometer (wind) or the met station (wind and PV) |
 | `wind_speed_2` | m/s | mean | turbine | 0 to 80 | yes | wind speed of the second (redundant) anemometer |
 | `wind_dir` | deg | circular | turbine, met, plant | 0 to 360 | yes | wind direction, from, clockwise from true north |
 | `wind_dir_rel` | deg | circular | turbine | -180 to 360 | yes | wind vane reading relative to the nacelle, positive = wind from the right |
@@ -87,6 +89,7 @@ Device types: inverter, string, met, meter, plant. Required: every `inverter` ne
 | `p_dc` | kW | mean | inverter, string | -1000 to 20000 | yes | DC power at the inverter input, positive = generation |
 | `v_dc` | V | mean | inverter, string | -50 to 2000 | yes | DC voltage |
 | `i_dc` | A | mean | inverter, string | -50 to 20000 | yes | DC current |
+| `wind_speed` | m/s | mean | turbine, met, plant | 0 to 80 | yes | wind speed at the nacelle anemometer (wind) or the met station (wind and PV) |
 | `wind_dir` | deg | circular | turbine, met, plant | 0 to 360 | yes | wind direction, from, clockwise from true north |
 | `t_amb` | degC | mean | turbine, met, plant, inverter | -60 to 70 | yes | ambient air temperature |
 | `t_inverter` | degC | mean | inverter | -60 to 150 | yes | inverter heat sink or cabinet temperature |

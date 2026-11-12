@@ -172,7 +172,9 @@ def build(
     table = pd.concat(data, ignore_index=True)
     if devices is not None:
         table = table[table["device_id"].isin(devices)]
+    n_rows = len(table)
     table = table.drop_duplicates(["device_id", "timestamp"])
+    removed = n_rows - len(table)
     table = table.dropna(axis=1, how="all")
     table = finalise(table)
     inv = read_static(static, width) if static is not None and static.exists() else []
@@ -181,13 +183,14 @@ def build(
     meta = DatasetMeta(
         name=name, profile="wind", interval="10min", source_timezone="UTC", source_label="start",
         devices=inv, source=source, notes=notes,
-        conversions=["pitch: mean of blades A, B and C", "no unit conversion: the export is in kW, m/s, deg, degC, V, A, rpm"],
+        conversions=["pitch: mean of blades A, B and C", "no unit conversion: the export is in kW, m/s, deg, degC, V, A, rpm",
+                     *([f"{removed} rows with a repeated (device, time stamp) dropped, the first kept"] if removed else [])],
     )
     events = pd.concat(status, ignore_index=True) if status else pd.DataFrame()
     ev = make_events(events.drop_duplicates()) if len(events) else None
     if ev is not None:
         ev = ev[ev["device_id"].isin(have)].reset_index(drop=True)
-    return Loaded(table, meta, ev if ev is not None else make_events(pd.DataFrame(columns=["device_id", "start", "end"])))
+    return Loaded(table, meta, ev if ev is not None else make_events(pd.DataFrame(columns=["device_id", "start", "end"])), removed={"duplicate_rows": removed})
 
 
 def year_archives(raw_dir: Path, pattern: str, years: list[int] | None) -> list[Path]:

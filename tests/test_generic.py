@@ -128,7 +128,7 @@ def test_code_table_adds_iec_category(tmp_path):
             "columns": {"P": {"signal": "p_ac"}, "W": {"signal": "wind_speed"}, "S": {"signal": "status_code"}}, "code_table": "senvion_mm",
             "devices": {"T01": {"type": "turbine", "rated_kw": 2000}}}
     L = import_table(ImportSpec.model_validate({**spec, "base_dir": tmp_path}))
-    assert list(L.table["iec_category"].iloc[[0, 9]]) == [None, "forced_outage"]  # 100: safety chain open
+    assert list(L.table["iec_category"].iloc[[0, 9]]) == ["full_performance", "forced_outage"]  # 0 "System OK" has no category and reads as operating; 100: safety chain open
 
 
 @pytest.mark.parametrize("change,message", [
@@ -189,3 +189,26 @@ def test_json_schema_files_are_current():
     cols = json.loads((ROOT / "schema" / "columns.json").read_text(encoding="utf-8"))["columns"]
     names = {c["name"] for c in cols}
     assert {"timestamp", "device_id", "p_ac", "p_ac__std", "poa", "iec_category"} <= names and "shutdown_s__std" not in names
+
+
+def test_imported_status_codes_give_a_sensible_availability(tmp_path):
+    from scada_schema.states import availability_from_table
+
+    n = 6 * 24
+    t = pd.date_range("2021-06-01", periods=n, freq="10min")
+    codes = ["0"] * (n - 12) + ["100"] * 12  # operating ("System OK" has no category), then two hours of a safety chain stop
+    pd.DataFrame({"time": t.strftime("%Y-%m-%d %H:%M"), "P": 100.0, "W": 5.0, "S": codes}).to_csv(tmp_path / "s.csv", index=False)
+    spec = {"name": "g", "profile": "wind", "interval": "10min", "files": ["s.csv"], "device": "T01", "timestamp": {"column": "time"},
+            "columns": {"P": {"signal": "p_ac"}, "W": {"signal": "wind_speed"}, "S": {"signal": "status_code"}}, "code_table": "senvion_mm",
+            "devices": {"T01": {"type": "turbine", "rated_kw": 2000}}}
+    L = import_table(ImportSpec.model_validate({**spec, "base_dir": tmp_path}))
+    assert list(L.table["iec_category"].iloc[[0, n - 1]]) == ["full_performance", "forced_outage"]
+    assert availability_from_table(L.table, "10min").time == pytest.approx(1 - 12 / n)  # not zero
+
+
+def test_missing_device_column_is_a_clear_error(tmp_path):
+    pd.DataFrame({"t": ["2021-06-01 00:00"], "P": [1.0], "W": [5.0]}).to_csv(tmp_path / "x.csv", index=False)
+    spec = {"name": "g", "profile": "wind", "interval": "10min", "files": ["x.csv"], "device_column": "Turbine", "timestamp": {"column": "t"},
+            "columns": {"P": {"signal": "p_ac"}, "W": {"signal": "wind_speed"}}}
+    with pytest.raises(ValueError, match="device column 'Turbine' not in the file"):
+        import_table(ImportSpec.model_validate({**spec, "base_dir": tmp_path}))

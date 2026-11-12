@@ -6,6 +6,12 @@ onshore farm in Portugal, farms B and C are anonymised offshore farms in Germany
 SCADA (a year of training data and a prediction section), with ``status_type_id`` (0 normal, 1 derated, 2 idling,
 3 service, 4 downtime, 5 other) and columns ``<sensor>_avg``, ``_min``, ``_max``, ``_std``.
 
+**Power is not in kW.** The feature descriptions say ``kW`` and ``kvar``, but the benchmark applies an "anonymisation-related scaling of
+power-related data" (Zenodo description of the record) and does not publish the rated power: in farm A the grid power of event 0 ranges
+from a little below 0 to about 1, in farms B and C the maxima are about 1. The loader therefore stores power and reactive power as ``p_ac_rel`` and
+``q_ac_rel`` (dimensionless, scaled by the source) and never as ``p_ac`` in kW; tools that need kW (wind-up, OpenOA) refuse such a table. Temperatures,
+speeds, angles and rotor speed are not described as scaled and are taken as given.
+
 The sensors are anonymised per farm (``sensor_12`` ...), so the loader holds a table per farm from the farm's
 ``feature_description.csv``; at load time every mapped sensor's description is checked against an expected phrase, so a
 wrong entry raises instead of silently mislabelling a channel. Farm C is mapped only for power, wind speed, rotor speed,
@@ -48,7 +54,7 @@ SOURCE = Source(
 # canonical signal -> (sensor, phrase expected in its description); several sensors for a signal are averaged
 MAPS: dict[str, dict[str, tuple[tuple[str, ...], str]]] = {
     "A": {
-        "p_ac": (("power_30",), "grid power"), "q_ac": (("sensor_31",), "grid reactive power"),
+        "p_ac_rel": (("power_30",), "grid power"), "q_ac_rel": (("sensor_31",), "grid reactive power"),
         "wind_speed": (("wind_speed_3",), "windspeed"), "wind_dir": (("sensor_1",), "wind absolute direction"),
         "wind_dir_rel": (("sensor_2",), "wind relative direction"), "pitch": (("sensor_5",), "pitch angle"),
         "nacelle_dir": (("sensor_42",), "nacelle direction"), "rotor_speed": (("sensor_52",), "rotor rpm"),
@@ -57,7 +63,7 @@ MAPS: dict[str, dict[str, tuple[tuple[str, ...], str]]] = {
         "t_gen_bearing": (("sensor_13",), "generator bearing 2"), "t_gen_winding": (("sensor_15",), "stator windings phase 1"),
     },
     "B": {
-        "p_ac": (("power_62",), "active power"), "q_ac": (("reactive_power_11",), "reactive power"),
+        "p_ac_rel": (("power_62",), "active power"), "q_ac_rel": (("reactive_power_11",), "reactive power"),
         "wind_speed": (("wind_speed_61",), "wind speed"), "wind_speed_2": (("wind_speed_60",), "wind speed 2"),
         "wind_dir": (("sensor_4",), "absolute wind direction"), "pitch": (("sensor_10",), "pitch angle"),
         "nacelle_dir": (("sensor_21",), "nacelle direction"), "rotor_speed": (("sensor_25",), "rotor speed"),
@@ -67,7 +73,7 @@ MAPS: dict[str, dict[str, tuple[tuple[str, ...], str]]] = {
         "t_main_bearing": (("sensor_51",), "rotor bearing temperature 1"),
     },
     "C": {
-        "p_ac": (("power_6",), "active power hv grid"), "q_ac": (("reactive_power_122",), "reactive power hv grid"),
+        "p_ac_rel": (("power_6",), "active power hv grid"), "q_ac_rel": (("reactive_power_122",), "reactive power hv grid"),
         "wind_speed": (("wind_speed_236",), "wind speed 1+2"), "wind_dir_rel": (("sensor_123",), "relative wind direction 1+2"),
         "rotor_speed": (("sensor_144",), "rotor speed 1"), "t_amb": (("sensor_7",), "ambient temperature"),
     },
@@ -159,9 +165,13 @@ def load(data_dir: str | Path | None = None, farm: str = "A", event_id: int = 0)
         name=f"{NAME}_{farm}_{event_id}", profile="wind", interval="10min", source_timezone="UTC", source_label="start",
         devices=[Device(id=device, type="turbine")], source=SOURCE,
         conversions=["sensor_x_avg, _min, _max, _std to <signal>, <signal>__min, __max, __std (mapped sensors only)",
+                     "power and reactive power are NOT converted to kW or kvar: the benchmark scales them (anonymisation) and publishes no rated power, "
+                     "so they are stored as p_ac_rel and q_ac_rel, dimensionless",
                      "status_type_id to status_code; iec_category from the benchmark's status ids (0 normal, 1 derated, 2 idling, "
                      "3 service, 4 downtime, 5 other), an interpretation the benchmark does not publish as IEC categories"],
-        notes=["Time stamps are anonymised and shifted per dataset: they carry no calendar information.",
+        notes=["Active and reactive power are in the benchmark's scaled unit (p_ac_rel, q_ac_rel), not in kW: the feature description says kW, the Zenodo record says the "
+               "power-related data are scaled for anonymisation and the rated power is unknown.",
+               "Time stamps are anonymised and shifted per dataset: they carry no calendar information.",
                f"farm {farm}, event {event_id}: one turbine's data with a training and a prediction section (x_train_test)."],
     )
-    return Loaded(out, meta, make_events(ev))
+    return Loaded(out, meta, make_events(ev), removed={"duplicate_rows": 0})

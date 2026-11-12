@@ -68,6 +68,8 @@ def test_pvlib_parity_synthetic(pvdaq_dir):
     raw = pd.concat([pd.read_csv(f) for f in sorted((pvdaq_dir / "system_34").glob("*.csv"))], ignore_index=True)
     r = par.pvlib_parity(load.table, load.meta, raw)
     assert r["intervals"] == len(raw) and r["max_rel_diff"] < 1e-6 and r["max_abs_diff_w"] < 1e-2 and r["max_modelled_ac_kw"] > 50
+    # the measured module temperature reaches the ModelChain (pvlib's name is module_temperature) and follows SAPM's module-to-cell step
+    assert r["module_temperature_vs_manual_max_abs_diff_k"] < 1e-3 and r["module_temperature_changes_cell_temperature_k"] > 0.5
 
 
 def test_pvlib_inputs_carry_measured_power_and_geometry(pvdaq_dir):
@@ -76,7 +78,7 @@ def test_pvlib_inputs_carry_measured_power_and_geometry(pvdaq_dir):
     inp = to_pv.to_pvlib(load.table, load.meta, at="start")
     assert inp.system == {"surface_tilt": 11.0, "surface_azimuth": 180.0, "pdc0": 146_600.0}
     assert inp.location["latitude"] == pytest.approx(36.1952) and inp.location["tz"] == "UTC"
-    assert {"poa_global", "temp_air", "wind_speed", "temp_module"} <= set(inp.weather.columns)
+    assert {"poa_global", "temp_air", "wind_speed", "module_temperature"} <= set(inp.weather.columns)
     assert inp.weather.index.equals(inp.p_ac_kw.index) and inp.p_ac_kw.max() > 100
     centre = to_pv.to_pvlib(load.table, load.meta, at="center")
     assert (centre.weather.index - inp.weather.index == pd.Timedelta("7.5min")).all()
@@ -170,3 +172,12 @@ def test_pvlib_parity_on_real_pvdaq_34():
     raw = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
     r = par.pvlib_parity(load.table, load.meta, raw)
     assert r["daylight_intervals"] > 10_000 and r["max_rel_diff"] < 1e-5
+
+
+def test_converters_refuse_a_table_with_scaled_power(synthetic):
+    lib, _ = synthetic
+    scaled = lib.rename(columns={"p_ac": "p_ac_rel"})
+    with pytest.raises(ValueError, match="p_ac_rel"):
+        to_wu.to_windup_scada(scaled, wind_meta(IDS))
+    with pytest.raises(ValueError, match="p_ac_rel"):
+        to_oa.to_openoa_frames(scaled, wind_meta(IDS))

@@ -23,13 +23,13 @@ def build_data(study: dict) -> str:
     from scada_schema.signals import SIGNALS
 
     keep = ("name", "source", "doi", "license", "profile", "interval", "source_timezone", "source_label", "rows", "devices", "signals",
-            "stat_columns", "first", "last", "events", "validation", "qc")
+            "stat_columns", "first", "last", "events", "demo", "removed", "validation", "qc")
     ds = []
     for d in study["datasets"]:
         q = d["qc"]
         ds.append({**{k: d[k] for k in keep if k != "qc"},
                    "qc": {"counts": q["counts"], "checks_run": q["checks_run"], "checks_skipped": q["checks_skipped"], "by_check": q["by_check"],
-                          "highlights": q["highlights"]}})
+                          "highlights": q["highlights"]}, **({"time_diagnostics": d["time_diagnostics"]} if "time_diagnostics" in d else {})})
     payload = {
         "version": study["scada_schema_version"], "totals": study["totals"], "schema": study["schema"], "datasets": ds, "iec": study["iec"],
         "figures": study.get("figures", {}), "parity": study.get("parity", {}),

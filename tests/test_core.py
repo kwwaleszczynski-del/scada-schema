@@ -96,3 +96,22 @@ def test_missing_rating_is_a_warning(wind):
     meta2 = DatasetMeta(**{**meta.model_dump(), "devices": [Device(id=d.id, type="turbine") for d in meta.devices]})
     rep = validate(df, meta2)
     assert rep.ok and "missing_rating" in rep.codes()
+
+
+def test_signals_must_belong_to_the_profile_of_the_meta(wind):
+    df, meta = wind
+    assert validate(df, meta).ok
+    assert "signal_not_in_profile" in validate(df.assign(poa=1.0), meta).codes()  # irradiance is not a wind signal
+    pv = DatasetMeta(name="p", profile="pv", interval="10min", devices=[Device(id=d.id, type="inverter") for d in meta.devices])
+    rep = validate(df[["timestamp", "device_id", "rotor_speed", "p_ac"]], pv)
+    assert "signal_not_in_profile" in rep.codes()  # rotor speed is not a PV signal
+    # a met station of a PV plant carries wind speed
+    assert "signal_not_in_profile" not in validate(df[["timestamp", "device_id", "wind_speed"]].assign(poa=1.0), DatasetMeta(
+        name="p", profile="pv", interval="10min", devices=[Device(id=d.id, type="met") for d in meta.devices])).codes()
+
+
+def test_a_turbine_may_carry_scaled_power_instead_of_kw(wind):
+    df, meta = wind
+    scaled = df.rename(columns={"p_ac": "p_ac_rel"}).assign(p_ac_rel=(df["p_ac"] / 2050).astype("float32"))
+    assert validate(scaled, meta).ok
+    assert "missing_required" in validate(scaled.drop(columns="p_ac_rel"), meta).codes()

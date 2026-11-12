@@ -163,8 +163,10 @@ def pvlib_parity(table: pd.DataFrame, meta: DatasetMeta, raw: pd.DataFrame, inve
     system = pvlib.pvsystem.PVSystem(arrays=[arr], inverter_parameters={"pdc0": pdc0})
     mc = pvlib.modelchain.ModelChain.with_pvwatts(system, loc, aoi_model="no_loss", spectral_model="no_loss", losses_model="no_loss")
     # the measured plane-of-array irradiance is taken as the effective irradiance (no optical or spectral loss on top)
-    mc.run_model_from_effective_irradiance(inp.weather.assign(effective_irradiance=inp.weather["poa_global"]))
+    weather = inp.weather.assign(effective_irradiance=inp.weather["poa_global"])
+    mc.run_model_from_effective_irradiance(weather.drop(columns="module_temperature", errors="ignore"))  # cell temperature from the ambient air
     ac = mc.results.ac
+    cell_ambient = mc.results.cell_temperature
     stamp = pd.to_datetime(raw["measured_on"]).dt.round("15min").dt.tz_localize("Etc/GMT+8").dt.tz_convert("UTC")
     centre = pd.DatetimeIndex(stamp - pd.Timedelta("7.5min"))
     poa = pd.to_numeric(raw[col(c["poa"])], errors="coerce").to_numpy()
@@ -176,6 +178,15 @@ def pvlib_parity(table: pd.DataFrame, meta: DatasetMeta, raw: pd.DataFrame, inve
     both = pd.concat([ac.rename("lib"), manual.rename("manual")], axis=1).dropna()
     daylight = both[both["manual"] > 0.01 * pdc0]
     rel = (daylight["lib"] - daylight["manual"]).abs() / daylight["manual"]
-    return {"intervals": int(len(both)), "daylight_intervals": int(len(daylight)), "pdc0_kw": float(pdc0 / 1000),
+    # the measured module temperature is a different input of the ModelChain: with it the cell temperature must follow SAPM's module-to-cell step
+    mc.run_model_from_effective_irradiance(weather)
+    t_mod = (pd.to_numeric(raw[col("module_temp_f")], errors="coerce").to_numpy() - 32.0) * 5.0 / 9.0
+    manual_cell = pd.Series(pvlib.temperature.sapm_cell_from_module(t_mod, poa, params["deltaT"]), index=centre)
+    manual_cell = manual_cell[~manual_cell.index.duplicated()]
+    cells = pd.concat([mc.results.cell_temperature.rename("lib"), manual_cell.rename("manual"), cell_ambient.rename("ambient")], axis=1).dropna()
+    res = {"module_temperature_vs_manual_max_abs_diff_k": float((cells["lib"] - cells["manual"]).abs().max()),
+           # the median over the daylight intervals: single sensor faults (a stuck ambient temperature) would dominate a maximum
+           "module_temperature_changes_cell_temperature_k": float((cells["lib"] - cells["ambient"]).abs()[inp.weather["poa_global"].reindex(cells.index) > 200].median())}
+    return {**res, **{"intervals": int(len(both)), "daylight_intervals": int(len(daylight)), "pdc0_kw": float(pdc0 / 1000),
             "max_abs_diff_w": float((both["lib"] - both["manual"]).abs().max()), "max_rel_diff": float(rel.max()),
-            "max_modelled_ac_kw": float(both["lib"].max() / 1000)}
+            "max_modelled_ac_kw": float(both["lib"].max() / 1000)}}

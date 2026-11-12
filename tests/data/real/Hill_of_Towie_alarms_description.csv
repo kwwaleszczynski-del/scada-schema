@@ -1,0 +1,13 @@
+Alarm Code,Description,Stopping
+20,Large generator Cut-in,0
+25,Fast cut-out of generator,0
+102,Ice detection             :,0
+1005,Availability - low wind,1
+3130,Pitch lubrication,1
+8000,Windspeed too high to operate,1
+8210,"Stopped, due to icing",1
+8230,Ice detection: Low torque,1
+8234,Ice detection: No cut in,1
+8235,Ice Detect: Stopped,1
+8236,"Ice Detect: Stopped, De-Ice",1
+10105,"Stopped, untwisting cables",1

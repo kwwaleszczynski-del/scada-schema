@@ -47,13 +47,15 @@ class Spec:
     states: str | None = None  # code table of the controller family, for datasets with an event log
     dst_zone: str | None = None  # site time zone to look for daylight saving artefacts in UTC time stamps
     operator_labels: bool = False  # the event log carries the operator's own IEC category per event
+    demo: bool = False  # a demonstration of a check on data that is also in the study (not counted in the totals)
 
 
 SPECS: list[Spec] = [
     Spec("kelmarsh_2019", "kelmarsh", {"years": [2019]}, "senvion_mm", "Europe/London", True),
     Spec("penmanshiel_2020", "penmanshiel", {"years": [2020]}, "senvion_mm", "Europe/London", True),
     Spec("hill_of_towie_2021", "hill_of_towie", {"years": [2021]}, "siemens_swt_hot", "Europe/London"),
-    Spec("la_haute_borne", "la_haute_borne", {}, None, "Europe/Paris"),
+    Spec("la_haute_borne", "la_haute_borne", {}, None),
+    Spec("la_haute_borne_as_stamped", "la_haute_borne", {"time": "as_stamped"}, None, "Europe/Paris", demo=True),
     Spec("care_A", "care", {"farm": "A", "event_id": None}),
     Spec("care_B", "care", {"farm": "B", "event_id": None}),
     Spec("care_C", "care", {"farm": "C", "event_id": None}),
@@ -61,7 +63,7 @@ SPECS: list[Spec] = [
     Spec("pvdaq_1276", "pvdaq", {"system": 1276, "years": [2016, 2017, 2018]}),
     Spec("pvdaq_1278", "pvdaq", {"system": 1278, "years": [2016, 2017, 2018]}),
     Spec("pvdaq_35", "pvdaq", {"system": 35, "years": [2016, 2017, 2018]}),
-    Spec("pvdaq_34_raw_units", "pvdaq", {"system": 34, "years": [2016, 2017, 2018], "fix_units": False}),
+    Spec("pvdaq_34_raw_units", "pvdaq", {"system": 34, "years": [2016, 2017, 2018], "fix_units": False}, demo=True),
 ]
 MODULES = {"kelmarsh": kelmarsh, "penmanshiel": penmanshiel, "hill_of_towie": hill_of_towie, "la_haute_borne": la_haute_borne, "care": care, "pvdaq": pvdaq}
 SEVERITIES = ("info", "warning", "error")
@@ -135,10 +137,12 @@ def study_dataset(spec: Spec, out_dir: Path) -> tuple[dict, object]:
         "args": {k: v for k, v in kw.items()}, "rows": int(len(t)), "devices": int(t["device_id"].nunique()),
         "signals": len(sigs), "signal_names": sigs, "stat_columns": int(sum("__" in c for c in t.columns)),
         "first": t["timestamp"].min().isoformat(), "last": t["timestamp"].max().isoformat(),
-        "events": int(len(loaded.events)),
+        "events": int(len(loaded.events)), "demo": spec.demo, "removed": dict(loaded.removed),
         "validation": {"ok": rep.ok, "errors": len(rep.errors), "warnings": len(rep.warnings), "codes": sorted(rep.codes())},
         "qc": summarise_report(report), "conversions": loaded.meta.conversions,
     }
+    if spec.name == "la_haute_borne":
+        entry["time_diagnostics"] = la_haute_borne.time_diagnostics()
     log.info("%s: %d rows, %d devices, %s, %.0f s", spec.name, entry["rows"], entry["devices"], entry["qc"]["counts"], time.time() - t0)
     return entry, loaded
 
@@ -255,11 +259,13 @@ def run(out_dir: Path, only: list[str] | None = None, skip_converters: bool = Fa
     result["schema"] = {"signals": len(SIGNALS), "wind_signals": len(PROFILE_SIGNALS["wind"]), "pv_signals": len(PROFILE_SIGNALS["pv"]),
                         "checks": len(CHECKS), "iec_categories": len(IEC_CATEGORIES),
                         "code_tables": {t: len(load_code_table(t)) for t in CODE_TABLES}}
+    counted = [d for d in datasets if not d["demo"]]
     result["totals"] = {
-        "datasets": len(datasets), "sources": len({d["source"] for d in datasets}), "rows": int(sum(d["rows"] for d in datasets)),
-        "devices": int(sum(d["devices"] for d in datasets)),
-        "schema_valid": int(sum(d["validation"]["ok"] for d in datasets)),
-        "profiles": sorted({d["profile"] for d in datasets}),
+        "datasets": len(counted), "demonstrations": len(datasets) - len(counted), "sources": len({d["source"] for d in counted}),
+        "rows": int(sum(d["rows"] for d in counted)), "devices": int(sum(d["devices"] for d in counted)),
+        "schema_valid": int(sum(d["validation"]["ok"] for d in counted)), "profiles": sorted({d["profile"] for d in counted}),
+        "removed_duplicate_rows": int(sum(d["removed"].get("duplicate_rows", 0) for d in counted)),
+        "removed_ambiguous_time_rows": int(sum(d["removed"].get("ambiguous_time_rows", 0) for d in counted)),
     }
     if prior is not None:  # a partial run keeps the rest of the earlier study
         for key in ("figures", "parity"):

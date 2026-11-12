@@ -125,6 +125,11 @@ def validate(df: pd.DataFrame, meta: DatasetMeta | None = None, profile: str | N
         add(Issue("error", "device_id_not_string", f"device_id must be a string column, found {df['device_id'].dtype}"))
 
     profile = meta.profile if meta is not None else profile
+    if meta is not None:
+        for col in df.columns:
+            b = split_column(col)[0]
+            if b in SIGNALS and meta.profile not in SIGNALS[b].profiles:
+                add(Issue("error", "signal_not_in_profile", f"{col!r} is not a signal of the {meta.profile} profile", 1, col))
 
     # ---------------------------------------------------------------- columns and dtypes
     for col in df.columns:

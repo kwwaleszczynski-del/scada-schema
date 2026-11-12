@@ -50,6 +50,11 @@ def _by_device(ctx: Ctx, rows: np.ndarray) -> dict[str, np.ndarray]:
     return out
 
 
+def _power_col(ctx: Ctx) -> str | None:
+    """The active power column of the table: ``p_ac`` (kW) or, where a source publishes only a scaled number, ``p_ac_rel``."""
+    return "p_ac" if ctx.has("p_ac") else "p_ac_rel" if ctx.has("p_ac_rel") else None
+
+
 def _signal_columns(ctx: Ctx) -> list[str]:
     return [c for c in ctx.df.columns if c not in ("timestamp", "device_id") and "__" not in c and c in SIGNALS
             and SIGNALS[c].kind not in ("text", "category")]
@@ -269,17 +274,18 @@ def _wind_devices(ctx: Ctx) -> list[tuple[str, int, int]]:
 
 @register("power_curve")
 def power_curve(ctx: Ctx) -> list[Finding]:
-    if ctx.meta.profile != "wind" or not (ctx.has("p_ac") and ctx.has("wind_speed")):
-        skip("needs a wind table with p_ac and wind_speed")
+    pc = _power_col(ctx)
+    if ctx.meta.profile != "wind" or pc is None or not ctx.has("wind_speed"):
+        skip("needs a wind table with power (p_ac or p_ac_rel) and wind_speed")
     out = []
-    p_all, ws_all = ctx.values("p_ac"), ctx.values("wind_speed")
+    p_all, ws_all = ctx.values(pc), ctx.values("wind_speed")
     bin_w = ctx.cfg.curve_bin_ms
     for dev, a, b in _wind_devices(ctx):
         p, ws = p_all[a:b], ws_all[a:b]
         ok = np.isfinite(p) & np.isfinite(ws) & (ws >= 3.0) & (ws <= 25.0)
         if ok.sum() < 500:
             continue
-        rated = ctx.rated(dev) or float(np.nanpercentile(p[ok], 99.5))
+        rated = (ctx.rated(dev) if pc == "p_ac" else None) or float(np.nanpercentile(p[ok], 99.5))  # a scaled power has no rating in kW
         k = np.floor(np.nan_to_num(ws, nan=-1.0) / bin_w).astype(int)
         df = pd.DataFrame({"k": k[ok], "p": p[ok]})
         g = df.groupby("k")["p"]
@@ -299,7 +305,7 @@ def power_curve(ctx: Ctx) -> list[Finding]:
             f = ctx.finding("power_curve", _sev_by_share(len(rows) / int(ok.sum()), 0.05, 0.25),
                             f"{int(high.sum())} intervals above and {int(low.sum())} below the median power curve by more than "
                             f"{ctx.cfg.curve_k:g} robust deviations (stops and curtailment are among the low ones)",
-                            rows=rows, device=dev, signal="p_ac", total=int(ok.sum()))
+                            rows=rows, device=dev, signal=pc, total=int(ok.sum()))
             f.value = float(high.sum() / max(ok.sum(), 1))
             out.append(f)
     return out
@@ -333,7 +339,7 @@ def wind_direction(ctx: Ctx) -> list[Finding]:
         mask = np.isfinite(ang)
         if ctx.has("wind_speed"):
             mask &= ctx.values("wind_speed") >= 5.0
-        if ctx.has("p_ac"):
+        if ctx.has("p_ac"):  # in kW with a rating: only intervals with power; a scaled power has no rating to compare with
             rated = np.array([ctx.rated(d) or np.nan for d in ctx.dev])
             with np.errstate(invalid="ignore"):
                 mask &= ~(ctx.values("p_ac") <= 0.1 * np.where(np.isfinite(rated), rated, 0.0)) | ~np.isfinite(rated)
@@ -374,8 +380,8 @@ def icing(ctx: Ctx) -> list[Finding]:
             a, b = next((a, b) for d, a, b in ctx.segments if d == dev)
             out.append(ctx.finding("icing", "warning", f"wind_speed reads under 0.5 m/s while the rotor turns above 3 rpm below {cfg.icing_temp_max:g} degC "
                                    f"in {len(r)} intervals: an iced anemometer", rows=r, device=dev, signal="wind_speed", total=int(cold[a:b].sum())))
-    if ctx.has("p_ac"):
-        p = ctx.values("p_ac")
+    if _power_col(ctx) is not None:
+        p = ctx.values(_power_col(ctx))
         running = np.ones(len(p), bool)
         if ctx.has("shutdown_s"):
             running &= ~(ctx.values("shutdown_s") > 0)
@@ -404,7 +410,7 @@ def icing(ctx: Ctx) -> list[Finding]:
             if len(rows):
                 out.append(ctx.finding("icing", "warning", f"power under {cfg.icing_power_ratio:.0%} of the turbine's warm-weather median at the same wind speed, "
                                        f"in {cfg.icing_temp_min:g}..{cfg.icing_temp_max:g} degC for at least {cfg.icing_min_hours:g} h, outside logged stops: "
-                                       f"{len(rows)} intervals", rows=rows, device=dev, signal="p_ac", total=int(((t[a:b] < cfg.icing_temp_max) & (t[a:b] > cfg.icing_temp_min)).sum())))
+                                       f"{len(rows)} intervals", rows=rows, device=dev, signal=_power_col(ctx), total=int(((t[a:b] < cfg.icing_temp_max) & (t[a:b] > cfg.icing_temp_min)).sum())))
     return out
 
 

@@ -161,7 +161,8 @@ PROFILES: dict[str, Profile] = {
     WIND: Profile(
         name=WIND,
         device_types=("turbine", "met", "plant"),
-        required={"turbine": ("p_ac", "wind_speed")},
+        required={"turbine": ("wind_speed",)},
+        any_of={"turbine": (("p_ac", "p_ac_rel"),)},
         description="wind turbines (and optionally met masts and the plant meter): power, wind, nacelle, pitch, state, temperatures",
     ),
     PV: Profile(

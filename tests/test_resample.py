@@ -87,3 +87,36 @@ def test_cli_resample(tmp_path):
     df, meta = read_parquet(tmp_path / "h.parquet")
     assert meta.interval == "1h" and len(df) == 6
     assert main(["resample", str(p), "--to", "15min", "--out", str(tmp_path / "x.parquet")]) == 2
+
+
+def test_partial_sums_are_recorded_and_not_scaled_unless_asked():
+    df = frame(12, e_export=1.0)
+    df = df.drop(index=[0]).reset_index(drop=True)  # the first hour has five of six intervals
+    out, m = resample(df, meta10(), "1h")
+    assert out["e_export"].iloc[0] == 5.0 and out["e_export"].iloc[1] == 6.0
+    assert "1 sums cover only part of their interval (not scaled)" in m.conversions[-1]
+    out2, m2 = resample(df, meta10(), "1h", scale_sums=True)
+    assert out2["e_export"].iloc[0] == pytest.approx(6.0) and "scaled up" in m2.conversions[-1]
+
+
+def test_counter_needs_the_last_interval_of_the_hour():
+    n = 12
+    df = frame(n, e_export_counter=1000.0 + np.arange(n, dtype="float64"))
+    df.loc[5, "e_export_counter"] = np.nan  # the last reading of the first hour is missing, the ones before it are there
+    out, _ = resample(df, meta10(), "1h")
+    assert np.isnan(out["e_export_counter"].iloc[0]) and out["e_export_counter"].iloc[1] == 1011.0
+
+
+def test_vane_angle_stays_in_its_range_and_opposite_directions_cancel():
+    t = pd.date_range("2021-03-01", periods=6, freq="10min", tz="UTC")
+    df = finalise(pd.DataFrame({"timestamp": t, "device_id": "T01", "p_ac": 1.0, "wind_speed": 5.0, "wind_dir_rel": [-170.0, 170.0, -170.0, 170.0, -170.0, 170.0]}))
+    df2 = finalise(pd.DataFrame({"timestamp": t, "device_id": "T01", "p_ac": 1.0, "wind_speed": 5.0, "wind_dir": [0.0, 180.0] * 3, "wind_dir_rel": -10.0}))
+    out, _ = resample(df, meta10(), "1h")
+    assert abs(abs(float(out["wind_dir_rel"].iloc[0])) - 180.0) < 1e-3  # +-180, not 0..360
+    out2, _ = resample(df2, meta10(), "1h")
+    assert out2["wind_dir_rel"].iloc[0] == pytest.approx(-10.0, abs=1e-4) and "wind_dir" not in out2.columns  # 0 and 180 degrees cancel: no mean direction, the column is empty and left out
+
+
+def test_extension_columns_are_dropped_and_listed():
+    out, m = resample(frame(12, x_note=1.0), meta10(), "1h")
+    assert "x_note" not in out.columns and "extension columns dropped: x_note" in m.conversions[-1]

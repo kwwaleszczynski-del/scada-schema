@@ -36,8 +36,9 @@ def pct(x: float, nd: int = 1) -> str:
 def numbers(study: dict) -> dict[str, str]:
     t, sch = study["totals"], study["schema"]
     n: dict[str, str] = {
-        "n_datasets": str(t["datasets"]), "n_sources": str(t["sources"]), "rows_m": f"{t['rows'] / 1e6:.1f}", "rows": f"{t['rows']:,}",
-        "n_devices": str(t["devices"]), "schema_valid": f"{t['schema_valid']} of {t['datasets']}",
+        "n_datasets": str(t["datasets"]), "n_demo": str(t["demonstrations"]), "n_sources": str(t["sources"]), "rows_m": f"{t['rows'] / 1e6:.1f}",
+        "rows": f"{t['rows']:,}", "n_devices": str(t["devices"]), "schema_valid": f"{t['schema_valid']} of {t['datasets']}",
+        "removed_dups": f"{t['removed_duplicate_rows']:,}", "removed_amb": f"{t['removed_ambiguous_time_rows']:,}",
         "n_signals": str(sch["signals"]), "n_wind_signals": str(sch["wind_signals"]), "n_pv_signals": str(sch["pv_signals"]),
         "n_checks": str(sch["checks"]), "n_iec": str(sch["iec_categories"]),
         "code_table_senvion": str(sch["code_tables"]["senvion_mm"]), "code_table_siemens": str(sch["code_tables"]["siemens_swt_hot"]),
@@ -55,12 +56,17 @@ def numbers(study: dict) -> dict[str, str]:
     n["hot_north_max"] = f"{hot['max_abs_deg']:.1f}"
     n["hot_north_dev"] = hot["max_abs_device"]
     lhb = _ds(study, "la_haute_borne")
-    d = lhb["qc"]["highlights"]["dst"]
-    n["lhb_dst_hit"], n["lhb_dst_total"] = str(d["transitions_hit"]), str(d["transitions"])
-    n["lhb_rows"], n["lhb_devices"] = f"{lhb['rows']:,}", str(lhb["devices"])
-    eps = lhb["qc"]["highlights"]["gaps"]["longest_episodes"]
-    n["lhb_gap_window"] = f"{eps[0][0][11:]} to {eps[0][1][11:]}"
-    n["lhb_gap_dates"] = " and ".join(e[0][:10] for e in eps[:2])
+    td = lhb["time_diagnostics"]
+    stamped = _ds(study, "la_haute_borne_as_stamped")["qc"]["highlights"]["dst"]
+    n["lhb_dst_hit"], n["lhb_dst_total"] = str(stamped["transitions_hit"]), str(stamped["transitions"])
+    n["lhb_rows"], n["lhb_days"] = f"{td['rows_per_turbine']:,}", str(td["rows_per_turbine"] // 144)
+    mh = td["temperature_maximum_hour"]
+    order = ("before_spring", "after_spring", "before_autumn", "after_autumn")
+    n["lhb_wall"] = ", ".join(f"{mh[k]['wall_clock']:.1f}" for k in order)
+    n["lhb_utc"] = ", ".join(f"{mh[k]['stamped_utc']:.1f}" for k in order)
+    n["lhb_repeated"] = str(td["spring_repeated_stamps_per_turbine"] // 2)
+    n["lhb_clear"], n["lhb_cases"] = str(td["spring_pair_assignments"]["clear_winner"]), str(td["spring_pair_assignments"]["cases"])
+    n["lhb_dropped"] = f"{lhb['removed']['ambiguous_time_rows']:,}"
     k = _ds(study, "kelmarsh_2019")["qc"]["highlights"]["north_offsets"]
     n["kel_north_max"] = f"{k['max_abs_deg']:.1f}"
     for name, key in (("kelmarsh_2019", "kel"), ("penmanshiel_2020", "pen")):
@@ -94,13 +100,16 @@ def numbers(study: dict) -> dict[str, str]:
 
 
 def table_datasets(study: dict) -> str:
-    rows = ["| Dataset | Source (licence) | Profile | Interval | Rows | Devices | Signals | Schema | QC findings (error / warning / info) |",
-            "|---|---|---|---|---:|---:|---:|---|---|"]
+    rows = ["| Dataset | Source (licence) | Profile | Interval | Rows | Devices | Signals | Schema | Removed by the loader | QC findings (error / warning / info) |",
+            "|---|---|---|---|---:|---:|---:|---|---|---|"]
     for d in study["datasets"]:
         c = d["qc"]["counts"]
-        rows.append(f"| [{d['name']}](https://kwwaleszczynski-del.github.io/scada-schema/qc/{d['name']}.html) | {d['source']} ({d['license']}) | {d['profile']} | "
+        rem = d["removed"]
+        removed = ", ".join(f"{v:,} {k.replace('_', ' ')}" for k, v in rem.items() if v) or "none"
+        name = f"[{d['name']}](https://kwwaleszczynski-del.github.io/scada-schema/qc/{d['name']}.html)" + (" (demonstration, not counted)" if d["demo"] else "")
+        rows.append(f"| {name} | {d['source']} ({d['license']}) | {d['profile']} | "
                     f"{d['interval']} | {d['rows']:,} | {d['devices']} | {d['signals']} (+{d['stat_columns']} statistics) | "
-                    f"{'valid' if d['validation']['ok'] else 'INVALID'} | {c['error']} / {c['warning']} / {c['info']} |")
+                    f"{'valid' if d['validation']['ok'] else 'INVALID'} | {removed} | {c['error']} / {c['warning']} / {c['info']} |")
     return "\n".join(rows)
 
 
@@ -144,6 +153,7 @@ def table_parity(study: dict) -> str:
         f"| OpenOA 3 | {o['dataset']}, {o['rows']:,} rows | `PlantData.scada` | {o['scada_max_abs_diff']:.1e} |",
         f"| | | `power_curve.IEC` | {o['iec_curve_max_abs_diff_kw']:.1e} kW |",
         f"| pvlib 0.16 | {v['dataset']}, {v['intervals']:,} intervals | PVWatts `ModelChain` (modelled plant up to {v['max_modelled_ac_kw']:.0f} kW) | {v['max_rel_diff']:.1e} relative in daylight ({v['max_abs_diff_w']:.1e} W) |",
+        f"| | | cell temperature from the measured `module_temperature` against SAPM's module-to-cell formula called directly | {v['module_temperature_vs_manual_max_abs_diff_k']:.1e} K; the measured module temperature moves the cell temperature by a median of {v['module_temperature_changes_cell_temperature_k']:.1f} K (daylight) against the ambient-air model |",
     ])
 
 

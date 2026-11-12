@@ -74,18 +74,25 @@ def test_project_page_uses_only_data_from_data_js():
     assert "integrity=" in html  # the CDN script is pinned
 
 
-@pytest.mark.data
-@pytest.mark.parametrize("name", ["care_A", "pvdaq_34"])
-def test_study_numbers_are_reproducible(study, name, tmp_path):
-    for var in ("CARE", "PVDAQ"):
-        if not os.environ.get(f"SCADA_SCHEMA_{var}_DIR"):
-            pytest.skip(f"set SCADA_SCHEMA_{var}_DIR")
+def _spec_names():
     from scada_schema import study as st
 
-    spec = next(s for s in st.SPECS if s.name == name)
+    return [sp.name for sp in st.SPECS]
+
+
+@pytest.mark.data
+@pytest.mark.parametrize("name", _spec_names())
+def test_study_numbers_are_reproducible(study, name, tmp_path):
+    """Every dataset of the study is loaded and checked again and must give the numbers of results/study.json (needs the full files)."""
+    from scada_schema import study as st
+
+    spec = next(sp for sp in st.SPECS if sp.name == name)
+    var = f"SCADA_SCHEMA_{spec.loader.upper()}_DIR"
+    if not os.environ.get(var):
+        pytest.skip(f"set {var}")
     entry, _ = st.study_dataset(spec, tmp_path)
     want = next(d for d in study["datasets"] if d["name"] == name)
-    for key in ("rows", "devices", "signals", "first", "last", "validation", "qc"):
+    for key in ("rows", "devices", "signals", "first", "last", "validation", "qc", "removed", "demo"):
         assert entry[key] == want[key], key
 
 

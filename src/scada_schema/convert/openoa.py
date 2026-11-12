@@ -45,6 +45,8 @@ def to_openoa_frames(df: pd.DataFrame, meta: DatasetMeta, turbines: list[str] | 
     """The SCADA and asset frames of OpenOA, without needing OpenOA installed."""
     if meta.profile != "wind":
         raise ValueError("OpenOA's PlantData needs a wind table")
+    if "p_ac_rel" in df.columns and "p_ac" not in df.columns:
+        raise ValueError("OpenOA's SCADA schema needs the active power in kW (p_ac); this table has only p_ac_rel, a number scaled by the source")
     for need in ("p_ac", "wind_speed"):
         if need not in df.columns or not df[need].notna().any():
             raise ValueError(f"OpenOA's SCADA schema needs {need}")

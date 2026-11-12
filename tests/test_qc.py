@@ -210,3 +210,17 @@ def test_unit_switch_in_wind_kw_to_w():
     f = [x for x in rep.findings if "switch" in x.message]
     assert f and f[0].value == pytest.approx(1000, rel=0.3) and f[0].first.strftime("%Y-%m") == "2021-01"
     assert f[0].first.day in (30, 31, 1) or f[0].first.month == 1
+
+
+def test_power_checks_work_on_scaled_power():
+    from conftest import wind_frame
+
+    df, meta = wind_frame(n=6 * 24 * 20)
+    df = df.rename(columns={"p_ac": "p_ac_rel"}).assign(p_ac_rel=lambda d: (d["p_ac_rel"] / 2050).astype("float32"))
+    rows = df.index[df.device_id == "T01"][500:520]
+    df.loc[rows, "p_ac_rel"] = 1.0
+    df.loc[rows, "wind_speed"] = 4.0
+    rep = qc.run(df, meta, checks=["power_curve", "flatline", "units"])
+    f = [x for x in rep.findings if x.check == "power_curve" and x.device == "T01"]
+    assert f and f[0].signal == "p_ac_rel" and f[0].n >= 15
+    assert not [x for x in rep.findings if x.check == "units"]  # no kW magnitude judgement on a scaled number

@@ -1,5 +1,5 @@
 {
- "scada_schema_version": "0.1.0",
+ "scada_schema_version": "0.1.1",
  "python": "3.13.7",
  "pandas": "2.3.3",
  "numpy": "2.5.4",
@@ -50,6 +50,10 @@
    "first": "2019-01-01T00:00:00+00:00",
    "last": "2019-12-31T23:50:00+00:00",
    "events": 59313,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 0
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -251,6 +255,10 @@
    "first": "2020-01-01T00:00:00+00:00",
    "last": "2020-12-31T23:50:00+00:00",
    "events": 158509,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 0
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -457,6 +465,10 @@
    "first": "2021-01-01T00:00:00+00:00",
    "last": "2021-12-31T23:50:00+00:00",
    "events": 798406,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 224
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -653,7 +665,9 @@
    "conversions": [
     "time stamps moved from the end to the start of the interval (-10 min)",
     "pitch: mean of blades A, B, C; v_ac and i_ac: mean of the three phases; t_gen_winding: mean of the windings 1U1, 1V1, 1W1",
-    "shutdown_s: ShutdownDuration of the operator's file, seconds out of 600"
+    "shutdown_s: ShutdownDuration of the operator's file, seconds out of 600",
+    "setpoint: the value at the end of the interval (wtc_PowerRef_endvalue), not a mean",
+    "224 rows with a repeated (device, time stamp) dropped, the first kept"
    ]
   },
   {
@@ -663,9 +677,217 @@
    "license": "Etalab open licence (as stated by ENGIE, not re-verified)",
    "profile": "wind",
    "interval": "10min",
-   "source_timezone": "Europe/Paris",
+   "source_timezone": "Etc/GMT-1",
    "source_label": "start",
    "args": {},
+   "rows": 420384,
+   "devices": 4,
+   "signals": 7,
+   "signal_names": [
+    "p_ac",
+    "wind_speed",
+    "wind_dir",
+    "wind_dir_rel",
+    "nacelle_dir",
+    "pitch",
+    "t_amb"
+   ],
+   "stat_columns": 0,
+   "first": "2014-01-01T00:00:00+00:00",
+   "last": "2015-12-31T23:50:00+00:00",
+   "events": 0,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 0,
+    "ambiguous_time_rows": 96
+   },
+   "validation": {
+    "ok": true,
+    "errors": 0,
+    "warnings": 0,
+    "codes": []
+   },
+   "qc": {
+    "counts": {
+     "info": 18,
+     "warning": 7,
+     "error": 0
+    },
+    "checks_run": [
+     "duplicates",
+     "ordering",
+     "time_jumps",
+     "gaps",
+     "missing_values",
+     "out_of_range",
+     "flatline",
+     "spikes",
+     "power_curve",
+     "wind_direction",
+     "icing",
+     "units"
+    ],
+    "checks_skipped": {
+     "dst": "Etc/GMT-1 has no daylight saving time; set dst_zone to test a site zone",
+     "energy_counter": "needs e_export_counter",
+     "energy_power": "needs e_export and p_ac"
+    },
+    "by_check": {
+     "duplicates": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "ordering": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "time_jumps": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "gaps": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 96,
+      "worst": "info"
+     },
+     "missing_values": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     },
+     "out_of_range": {
+      "findings": 3,
+      "devices": 3,
+      "rows": 62,
+      "worst": "warning"
+     },
+     "flatline": {
+      "findings": 1,
+      "devices": 1,
+      "rows": 73,
+      "worst": "info"
+     },
+     "spikes": {
+      "findings": 1,
+      "devices": 1,
+      "rows": 1,
+      "worst": "info"
+     },
+     "power_curve": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 2117,
+      "worst": "info"
+     },
+     "wind_direction": {
+      "findings": 8,
+      "devices": 4,
+      "rows": 187666,
+      "worst": "info"
+     },
+     "icing": {
+      "findings": 4,
+      "devices": 4,
+      "rows": 307,
+      "worst": "warning"
+     },
+     "units": {
+      "findings": 0,
+      "devices": 0,
+      "rows": 0,
+      "worst": "none"
+     }
+    },
+    "highlights": {
+     "north_offsets": {
+      "turbines": 4,
+      "flagged": [],
+      "max_abs_deg": 2.3,
+      "max_abs_device": "T04",
+      "median_abs_deg": 1.5,
+      "offsets_deg": {
+       "T01": -0.8,
+       "T02": 1.51,
+       "T03": 1.58,
+       "T04": -2.29
+      }
+     },
+     "dst": "not applicable",
+     "gaps": {
+      "devices_with_gaps": 4,
+      "missing_intervals": 96,
+      "longest_episodes": [
+       [
+        "2014-03-30 01:00",
+        "2014-03-30 03:00",
+        12
+       ],
+       [
+        "2015-03-29 01:00",
+        "2015-03-29 03:00",
+        12
+       ]
+      ]
+     }
+    }
+   },
+   "conversions": [
+    "time stamps: the offsets printed in the file are ignored; the wall clock is read as UTC+1 all year (UTC = wall clock - 1 h), because the series follows standard time (see the module description); 96 rows of repeated spring stamps cannot be assigned to the hour 02:xx or 03:xx and were dropped",
+    "turbine names (R80711, ...) replaced by T01 to T04 in the order of the names; no unit conversion: kW, m/s, deg, degC"
+   ],
+   "time_diagnostics": {
+    "rows_per_turbine": 105120,
+    "days": 731,
+    "rows_on_spring_change_day": 144,
+    "rows_on_autumn_change_day": 144,
+    "repeated_stamps": 48,
+    "missing_hours_stamped_utc": 2,
+    "temperature_maximum_hour": {
+     "before_spring": {
+      "wall_clock": 15.19,
+      "stamped_utc": 14.22
+     },
+     "after_spring": {
+      "wall_clock": 14.84,
+      "stamped_utc": 12.84
+     },
+     "before_autumn": {
+      "wall_clock": 14.9,
+      "stamped_utc": 12.86
+     },
+     "after_autumn": {
+      "wall_clock": 14.7,
+      "stamped_utc": 13.69
+     }
+    },
+    "spring_repeated_stamps_per_turbine": 24,
+    "spring_pair_assignments": {
+     "cases": 8,
+     "clear_winner": 0,
+     "equal_to_file_order": 0
+    }
+   }
+  },
+  {
+   "name": "la_haute_borne_as_stamped",
+   "source": "La Haute Borne wind farm data (ENGIE, copy shipped with OpenOA)",
+   "doi": null,
+   "license": "Etalab open licence (as stated by ENGIE, not re-verified)",
+   "profile": "wind",
+   "interval": "10min",
+   "source_timezone": "Europe/Paris",
+   "source_label": "start",
+   "args": {
+    "time": "as_stamped"
+   },
    "rows": 420432,
    "devices": 4,
    "signals": 7,
@@ -682,6 +904,11 @@
    "first": "2014-01-01T00:00:00+00:00",
    "last": "2015-12-31T23:50:00+00:00",
    "events": 0,
+   "demo": true,
+   "removed": {
+    "duplicate_rows": 48,
+    "ambiguous_time_rows": 0
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -831,8 +1058,9 @@
     }
    },
    "conversions": [
-    "time stamps: ISO 8601 with the UTC offset (+01:00 / +02:00) read exactly and converted to UTC",
-    "turbine names (R80711, ...) replaced by T01 to T04 in the order of the names; no unit conversion: kW, m/s, deg, degC"
+    "time stamps: ISO 8601 with the printed UTC offsets read as given and converted to UTC (not reconstructed)",
+    "turbine names (R80711, ...) replaced by T01 to T04 in the order of the names; no unit conversion: kW, m/s, deg, degC",
+    "48 rows with a repeated (device, time stamp) dropped, the later one kept"
    ]
   },
   {
@@ -852,8 +1080,8 @@
    "devices": 1,
    "signals": 16,
    "signal_names": [
-    "p_ac",
-    "q_ac",
+    "p_ac_rel",
+    "q_ac_rel",
     "wind_speed",
     "wind_dir",
     "wind_dir_rel",
@@ -873,6 +1101,10 @@
    "first": "2022-07-28T13:20:00+00:00",
    "last": "2023-08-13T13:20:00+00:00",
    "events": 1,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 0
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1017,6 +1249,7 @@
    },
    "conversions": [
     "sensor_x_avg, _min, _max, _std to <signal>, <signal>__min, __max, __std (mapped sensors only)",
+    "power and reactive power are NOT converted to kW or kvar: the benchmark scales them (anonymisation) and publishes no rated power, so they are stored as p_ac_rel and q_ac_rel, dimensionless",
     "status_type_id to status_code; iec_category from the benchmark's status ids (0 normal, 1 derated, 2 idling, 3 service, 4 downtime, 5 other), an interpretation the benchmark does not publish as IEC categories"
    ]
   },
@@ -1037,8 +1270,8 @@
    "devices": 1,
    "signals": 15,
    "signal_names": [
-    "p_ac",
-    "q_ac",
+    "p_ac_rel",
+    "q_ac_rel",
     "wind_speed",
     "wind_speed_2",
     "wind_dir",
@@ -1057,6 +1290,10 @@
    "first": "2022-08-24T00:00:00+00:00",
    "last": "2023-09-21T00:00:00+00:00",
    "events": 1,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 0
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1201,6 +1438,7 @@
    },
    "conversions": [
     "sensor_x_avg, _min, _max, _std to <signal>, <signal>__min, __max, __std (mapped sensors only)",
+    "power and reactive power are NOT converted to kW or kvar: the benchmark scales them (anonymisation) and publishes no rated power, so they are stored as p_ac_rel and q_ac_rel, dimensionless",
     "status_type_id to status_code; iec_category from the benchmark's status ids (0 normal, 1 derated, 2 idling, 3 service, 4 downtime, 5 other), an interpretation the benchmark does not publish as IEC categories"
    ]
   },
@@ -1221,8 +1459,8 @@
    "devices": 1,
    "signals": 8,
    "signal_names": [
-    "p_ac",
-    "q_ac",
+    "p_ac_rel",
+    "q_ac_rel",
     "wind_speed",
     "wind_dir_rel",
     "rotor_speed",
@@ -1234,6 +1472,10 @@
    "first": "2022-10-27T11:30:00+00:00",
    "last": "2023-11-18T15:30:00+00:00",
    "events": 1,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 0
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1346,6 +1588,7 @@
    },
    "conversions": [
     "sensor_x_avg, _min, _max, _std to <signal>, <signal>__min, __max, __std (mapped sensors only)",
+    "power and reactive power are NOT converted to kW or kvar: the benchmark scales them (anonymisation) and publishes no rated power, so they are stored as p_ac_rel and q_ac_rel, dimensionless",
     "status_type_id to status_code; iec_category from the benchmark's status ids (0 normal, 1 derated, 2 idling, 3 service, 4 downtime, 5 other), an interpretation the benchmark does not publish as IEC categories"
    ]
   },
@@ -1390,6 +1633,10 @@
    "first": "2016-01-01T07:45:00+00:00",
    "last": "2019-01-01T07:30:00+00:00",
    "events": 0,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 4354
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1418,7 +1665,7 @@
     ],
     "checks_skipped": {
      "dst": "Etc/GMT+8 has no daylight saving time; set dst_zone to test a site zone",
-     "power_curve": "needs a wind table with p_ac and wind_speed",
+     "power_curve": "needs a wind table with power (p_ac or p_ac_rel) and wind_speed",
      "icing": "needs a wind table with t_amb and wind_speed",
      "energy_counter": "needs e_export_counter",
      "energy_power": "needs e_export and p_ac"
@@ -1516,11 +1763,12 @@
     }
    },
    "conversions": [
-    "p_ac, p_dc: hectowatts to kW (x0.1) until 2018-08-04 20:00 UTC, watts to kW (x0.001) from then on",
+    "p_ac, p_dc: hectowatts to kW (x0.1) before 2018-08-04 19:45 UTC (start of the first interval in watts), watts to kW (x0.001) from then on; 99th percentile of the AC power of the inverters after conversion: 0.73 of the array's kWp",
     "t_amb, t_module: degrees Fahrenheit to degrees Celsius",
     "wind_speed: mph to m/s",
     "power_factor: raw value / 1000",
-    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval"
+    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval",
+    "4354 rows that fall on the same 15-minute stamp after rounding dropped, the first kept"
    ]
   },
   {
@@ -1563,6 +1811,10 @@
    "first": "2016-01-01T07:45:00+00:00",
    "last": "2019-01-01T07:30:00+00:00",
    "events": 0,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 4376
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1591,7 +1843,7 @@
     ],
     "checks_skipped": {
      "dst": "Etc/GMT+8 has no daylight saving time; set dst_zone to test a site zone",
-     "power_curve": "needs a wind table with p_ac and wind_speed",
+     "power_curve": "needs a wind table with power (p_ac or p_ac_rel) and wind_speed",
      "icing": "needs a wind table with t_amb and wind_speed",
      "energy_counter": "needs e_export_counter",
      "energy_power": "needs e_export and p_ac"
@@ -1694,11 +1946,12 @@
     }
    },
    "conversions": [
-    "p_ac, p_dc: hectowatts to kW (x0.1) until 2018-08-04 20:00 UTC, watts to kW (x0.001) from then on",
+    "p_ac, p_dc: hectowatts to kW (x0.1) before 2018-08-04 19:45 UTC (start of the first interval in watts), watts to kW (x0.001) from then on; 99th percentile of the AC power of the inverters after conversion: 0.69 of the array's kWp",
     "t_amb, t_module: degrees Fahrenheit to degrees Celsius",
     "wind_speed: mph to m/s",
     "power_factor: raw value / 1000",
-    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval"
+    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval",
+    "4376 rows that fall on the same 15-minute stamp after rounding dropped, the first kept"
    ]
   },
   {
@@ -1741,6 +1994,10 @@
    "first": "2016-01-01T07:45:00+00:00",
    "last": "2019-01-01T07:30:00+00:00",
    "events": 0,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 4439
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1769,7 +2026,7 @@
     ],
     "checks_skipped": {
      "dst": "Etc/GMT+8 has no daylight saving time; set dst_zone to test a site zone",
-     "power_curve": "needs a wind table with p_ac and wind_speed",
+     "power_curve": "needs a wind table with power (p_ac or p_ac_rel) and wind_speed",
      "icing": "needs a wind table with t_amb and wind_speed",
      "energy_counter": "needs e_export_counter",
      "energy_power": "needs e_export and p_ac"
@@ -1867,11 +2124,12 @@
     }
    },
    "conversions": [
-    "p_ac, p_dc: hectowatts to kW (x0.1) until 2018-08-04 20:00 UTC, watts to kW (x0.001) from then on",
+    "p_ac, p_dc: hectowatts to kW (x0.1) before 2018-08-04 19:45 UTC (start of the first interval in watts), watts to kW (x0.001) from then on; 99th percentile of the AC power of the inverters after conversion: 1.01 of the array's kWp",
     "t_amb, t_module: degrees Fahrenheit to degrees Celsius",
     "wind_speed: mph to m/s",
     "power_factor: raw value / 1000",
-    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval"
+    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval",
+    "4439 rows that fall on the same 15-minute stamp after rounding dropped, the first kept"
    ]
   },
   {
@@ -1915,6 +2173,10 @@
    "first": "2016-01-01T07:45:00+00:00",
    "last": "2019-01-01T07:30:00+00:00",
    "events": 0,
+   "demo": false,
+   "removed": {
+    "duplicate_rows": 4357
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -1943,7 +2205,7 @@
     ],
     "checks_skipped": {
      "dst": "Etc/GMT+8 has no daylight saving time; set dst_zone to test a site zone",
-     "power_curve": "needs a wind table with p_ac and wind_speed",
+     "power_curve": "needs a wind table with power (p_ac or p_ac_rel) and wind_speed",
      "icing": "needs a wind table with t_amb and wind_speed",
      "energy_counter": "needs e_export_counter",
      "energy_power": "needs e_export and p_ac"
@@ -2046,11 +2308,12 @@
     }
    },
    "conversions": [
-    "p_ac, p_dc: hectowatts to kW (x0.1) until 2018-08-04 20:00 UTC, watts to kW (x0.001) from then on",
+    "p_ac, p_dc: hectowatts to kW (x0.1) before 2018-08-04 19:45 UTC (start of the first interval in watts), watts to kW (x0.001) from then on; 99th percentile of the AC power of the inverters after conversion: 0.72 of the array's kWp",
     "t_amb, t_module: degrees Fahrenheit to degrees Celsius",
     "wind_speed: mph to m/s",
     "power_factor: raw value / 1000",
-    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval"
+    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval",
+    "4357 rows that fall on the same 15-minute stamp after rounding dropped, the first kept"
    ]
   },
   {
@@ -2095,6 +2358,10 @@
    "first": "2016-01-01T07:45:00+00:00",
    "last": "2019-01-01T07:30:00+00:00",
    "events": 0,
+   "demo": true,
+   "removed": {
+    "duplicate_rows": 4354
+   },
    "validation": {
     "ok": true,
     "errors": 0,
@@ -2123,7 +2390,7 @@
     ],
     "checks_skipped": {
      "dst": "Etc/GMT+8 has no daylight saving time; set dst_zone to test a site zone",
-     "power_curve": "needs a wind table with p_ac and wind_speed",
+     "power_curve": "needs a wind table with power (p_ac or p_ac_rel) and wind_speed",
      "icing": "needs a wind table with t_amb and wind_speed",
      "energy_counter": "needs e_export_counter",
      "energy_power": "needs e_export and p_ac"
@@ -2234,11 +2501,12 @@
     }
    },
    "conversions": [
-    "p_ac, p_dc: all values read as hectowatts (x0.1 to kW); a switch to watts in the record is NOT corrected",
+    "p_ac, p_dc: all values read as hectowatts (x0.1 to kW); a change to watts in the record is NOT corrected; 99th percentile of the AC power of the inverters after conversion: 58.66 of the array's kWp",
     "t_amb, t_module: degrees Fahrenheit to degrees Celsius",
     "wind_speed: mph to m/s",
     "power_factor: raw value / 1000",
-    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval"
+    "time stamps: local standard time (UTC-8) to UTC, rounded to 15 min, moved from the end to the start of the interval",
+    "4354 rows that fall on the same 15-minute stamp after rounding dropped, the first kept"
    ]
   }
  ],
@@ -2265,14 +2533,15 @@
    },
    "compared_stop_events": 673,
    "agreement_with_operator": 1.0,
-   "time_availability_iec_operational": 0.9953,
-   "time_availability_oem_warranty": 0.9976,
+   "time_availability_iec_operational": 0.9961,
+   "time_availability_oem_warranty": 0.9983,
    "interval_shares": {
-    "full_performance": 0.9932,
-    "forced_outage": 0.0024,
-    "scheduled_maintenance": 0.0023,
-    "electrical": 0.001,
+    "full_performance": 0.9929,
+    "scheduled_maintenance": 0.0022,
+    "forced_outage": 0.0017,
+    "no_info": 0.0013,
     "technical_standby": 0.0009,
+    "electrical": 0.0007,
     "environmental": 0.0002
    }
   },
@@ -2299,15 +2568,16 @@
    },
    "compared_stop_events": 3264,
    "agreement_with_operator": 1.0,
-   "time_availability_iec_operational": 0.9779,
-   "time_availability_oem_warranty": 0.9811,
+   "time_availability_iec_operational": 0.9879,
+   "time_availability_oem_warranty": 0.9923,
    "interval_shares": {
-    "full_performance": 0.929,
-    "requested": 0.0434,
-    "forced_outage": 0.0179,
-    "scheduled_maintenance": 0.0042,
+    "full_performance": 0.9266,
+    "no_info": 0.0557,
+    "forced_outage": 0.0076,
+    "scheduled_maintenance": 0.0039,
     "environmental": 0.0038,
     "technical_standby": 0.0015,
+    "requested": 0.0007,
     "electrical": 0.0002
    }
   },
@@ -2331,9 +2601,9 @@
   }
  ],
  "schema": {
-  "signals": 40,
-  "wind_signals": 31,
-  "pv_signals": 23,
+  "signals": 42,
+  "wind_signals": 33,
+  "pv_signals": 24,
   "checks": 15,
   "iec_categories": 10,
   "code_tables": {
@@ -2342,15 +2612,18 @@
   }
  },
  "totals": {
-  "datasets": 12,
+  "datasets": 11,
+  "demonstrations": 2,
   "sources": 6,
-  "rows": 3870948,
-  "devices": 59,
-  "schema_valid": 12,
+  "rows": 3660600,
+  "devices": 57,
+  "schema_valid": 11,
   "profiles": [
    "pv",
    "wind"
-  ]
+  ],
+  "removed_duplicate_rows": 17750,
+  "removed_ambiguous_time_rows": 96
  },
  "figures": {
   "pvdaq_units": {
@@ -3798,6 +4071,8 @@
    "dataset": "Kelmarsh 2019, turbines T01 to T03"
   },
   "pvlib": {
+   "module_temperature_vs_manual_max_abs_diff_k": 3.1539170919359094e-06,
+   "module_temperature_changes_cell_temperature_k": 17.99074459251246,
    "intervals": 35040,
    "daylight_intervals": 16858,
    "pdc0_kw": 146.6,

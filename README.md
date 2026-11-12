@@ -17,7 +17,7 @@ here is a certified implementation of an IEC standard.
 
 ## What is in it
 
-1. **Schema** ([SPEC.md](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md), generated from the code): 40 canonical signals (31 in the wind profile, 23 in the PV profile),
+1. **Schema** ([SPEC.md](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/SPEC.md), generated from the code): 42 canonical signals (33 in the wind profile, 24 in the PV profile),
    one row per device and interval, `timestamp` in UTC at the start of the interval, canonical units, power positive into the grid, compass
    angles clockwise from true north. Minimum, maximum and standard deviation columns where a source has them. The metadata (profile, interval, the
    time zone and label of the *source*, devices with ratings and positions, licence, every conversion the loader made) are stored inside the
@@ -44,52 +44,69 @@ here is a certified implementation of an IEC standard.
 All numbers on this page come from `python -m scada_schema study`, which writes `results/study.json`; `tests/test_docs.py` renders this README from the
 template and that file and fails when they differ.
 
-12 tables from 6 sources (3,870,948 rows, 59 devices) were loaded from the original files; the schema accepts 12 of 12.
+11 tables from 6 sources (3,660,600 rows, 57 devices) were loaded from the original files, plus 2 demonstration tables that are not counted
+(PVDAQ system 34 read as hectowatts throughout, and La Haute Borne with its printed time stamps, to show what the checks find). The schema accepts 11 of 11 of the counted tables.
 
-| Dataset | Source (licence) | Profile | Interval | Rows | Devices | Signals | Schema | QC findings (error / warning / info) |
-|---|---|---|---|---:|---:|---:|---|---|
-| [kelmarsh_2019](https://kwwaleszczynski-del.github.io/scada-schema/qc/kelmarsh_2019.html) | Kelmarsh wind farm data (Cubico Sustainable Investments) (CC-BY-4.0) | wind | 10min | 315,360 | 6 | 23 (+39 statistics) | valid | 0 / 19 / 49 |
-| [penmanshiel_2020](https://kwwaleszczynski-del.github.io/scada-schema/qc/penmanshiel_2020.html) | Penmanshiel wind farm data (Cubico Sustainable Investments) (CC-BY-4.0) | wind | 10min | 737,856 | 14 | 23 (+60 statistics) | valid | 0 / 359 / 107 |
-| [hill_of_towie_2021](https://kwwaleszczynski-del.github.io/scada-schema/qc/hill_of_towie_2021.html) | Hill of Towie wind farm open dataset (RES) (CC-BY-4.0) | wind | 10min | 1,090,921 | 21 | 20 (+42 statistics) | valid | 2 / 115 / 155 |
-| [la_haute_borne](https://kwwaleszczynski-del.github.io/scada-schema/qc/la_haute_borne.html) | La Haute Borne wind farm data (ENGIE, copy shipped with OpenOA) (Etalab open licence (as stated by ENGIE, not re-verified)) | wind | 10min | 420,432 | 4 | 7 (+0 statistics) | valid | 0 / 11 / 18 |
-| [care_A](https://kwwaleszczynski-del.github.io/scada-schema/qc/care_A.html) | CARE to Compare (CC-BY-SA-4.0) | wind | 10min | 54,358 | 1 | 16 (+15 statistics) | valid | 0 / 3 / 6 |
-| [care_B](https://kwwaleszczynski-del.github.io/scada-schema/qc/care_B.html) | CARE to Compare (CC-BY-SA-4.0) | wind | 10min | 56,564 | 1 | 15 (+39 statistics) | valid | 1 / 6 / 5 |
-| [care_C](https://kwwaleszczynski-del.github.io/scada-schema/qc/care_C.html) | CARE to Compare (CC-BY-SA-4.0) | wind | 10min | 55,753 | 1 | 8 (+18 statistics) | valid | 0 / 3 / 1 |
-| [pvdaq_34](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 210,300 | 2 | 15 (+0 statistics) | valid | 2 / 7 / 7 |
-| [pvdaq_1276](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_1276.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 209,162 | 2 | 14 (+0 statistics) | valid | 2 / 11 / 5 |
-| [pvdaq_1278](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_1278.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 315,456 | 3 | 14 (+0 statistics) | valid | 3 / 12 / 10 |
-| [pvdaq_35](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_35.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 194,486 | 2 | 15 (+0 statistics) | valid | 2 / 13 / 7 |
-| [pvdaq_34_raw_units](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34_raw_units.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 210,300 | 2 | 15 (+0 statistics) | valid | 4 / 7 / 7 |
+**"Valid" means that the structure follows the schema**: column names, types, time stamps on the interval grid, unique and sorted keys, signals of the profile and of the device type,
+required signals. It says nothing about units or values: a demonstration table whose power is a hundredfold too large is valid by construction, and so is CARE's scaled power (stored under its own
+signal name, see below). The quality checks look at the values. The `duplicates` and `ordering` checks find nothing in the table below because the loaders sort the rows and drop repeated ones
+before the checks run; 17,750 repeated rows and 96 rows with an ambiguous time stamp were removed in total (column "Removed by the loader").
+
+| Dataset | Source (licence) | Profile | Interval | Rows | Devices | Signals | Schema | Removed by the loader | QC findings (error / warning / info) |
+|---|---|---|---|---:|---:|---:|---|---|---|
+| [kelmarsh_2019](https://kwwaleszczynski-del.github.io/scada-schema/qc/kelmarsh_2019.html) | Kelmarsh wind farm data (Cubico Sustainable Investments) (CC-BY-4.0) | wind | 10min | 315,360 | 6 | 23 (+39 statistics) | valid | none | 0 / 19 / 49 |
+| [penmanshiel_2020](https://kwwaleszczynski-del.github.io/scada-schema/qc/penmanshiel_2020.html) | Penmanshiel wind farm data (Cubico Sustainable Investments) (CC-BY-4.0) | wind | 10min | 737,856 | 14 | 23 (+60 statistics) | valid | none | 0 / 359 / 107 |
+| [hill_of_towie_2021](https://kwwaleszczynski-del.github.io/scada-schema/qc/hill_of_towie_2021.html) | Hill of Towie wind farm open dataset (RES) (CC-BY-4.0) | wind | 10min | 1,090,921 | 21 | 20 (+42 statistics) | valid | 224 duplicate rows | 2 / 115 / 155 |
+| [la_haute_borne](https://kwwaleszczynski-del.github.io/scada-schema/qc/la_haute_borne.html) | La Haute Borne wind farm data (ENGIE, copy shipped with OpenOA) (Etalab open licence (as stated by ENGIE, not re-verified)) | wind | 10min | 420,384 | 4 | 7 (+0 statistics) | valid | 96 ambiguous time rows | 0 / 7 / 18 |
+| [la_haute_borne_as_stamped](https://kwwaleszczynski-del.github.io/scada-schema/qc/la_haute_borne_as_stamped.html) (demonstration, not counted) | La Haute Borne wind farm data (ENGIE, copy shipped with OpenOA) (Etalab open licence (as stated by ENGIE, not re-verified)) | wind | 10min | 420,432 | 4 | 7 (+0 statistics) | valid | 48 duplicate rows | 0 / 11 / 18 |
+| [care_A](https://kwwaleszczynski-del.github.io/scada-schema/qc/care_A.html) | CARE to Compare (CC-BY-SA-4.0) | wind | 10min | 54,358 | 1 | 16 (+15 statistics) | valid | none | 0 / 3 / 6 |
+| [care_B](https://kwwaleszczynski-del.github.io/scada-schema/qc/care_B.html) | CARE to Compare (CC-BY-SA-4.0) | wind | 10min | 56,564 | 1 | 15 (+39 statistics) | valid | none | 1 / 6 / 5 |
+| [care_C](https://kwwaleszczynski-del.github.io/scada-schema/qc/care_C.html) | CARE to Compare (CC-BY-SA-4.0) | wind | 10min | 55,753 | 1 | 8 (+18 statistics) | valid | none | 0 / 3 / 1 |
+| [pvdaq_34](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 210,300 | 2 | 15 (+0 statistics) | valid | 4,354 duplicate rows | 2 / 7 / 7 |
+| [pvdaq_1276](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_1276.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 209,162 | 2 | 14 (+0 statistics) | valid | 4,376 duplicate rows | 2 / 11 / 5 |
+| [pvdaq_1278](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_1278.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 315,456 | 3 | 14 (+0 statistics) | valid | 4,439 duplicate rows | 3 / 12 / 10 |
+| [pvdaq_35](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_35.html) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 194,486 | 2 | 15 (+0 statistics) | valid | 4,357 duplicate rows | 2 / 13 / 7 |
+| [pvdaq_34_raw_units](https://kwwaleszczynski-del.github.io/scada-schema/qc/pvdaq_34_raw_units.html) (demonstration, not counted) | NREL PVDAQ public datasets (OEDI) (CC-BY-4.0) | pv | 15min | 210,300 | 2 | 15 (+0 statistics) | valid | 4,354 duplicate rows | 4 / 7 / 7 |
 
 Number of devices with at least one finding, by check (the quality reports list every finding with its longest episodes):
 
-| Check | kelmarsh_2019 | penmanshiel_2020 | hill_of_towie_2021 | la_haute_borne | care_A | care_B | care_C | pvdaq_34 | pvdaq_1276 | pvdaq_1278 | pvdaq_35 | pvdaq_34_raw_units |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `duplicates` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `ordering` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `time_jumps` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `gaps` | 0 | 0 | 21 | 4 | 1 | 1 | 0 | 2 | 2 | 3 | 2 | 2 |
-| `dst` | 0 | 0 | 0 | 4 | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped |
-| `missing_values` | 6 | 14 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 |
-| `out_of_range` | 5 | 14 | 0 | 3 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `flatline` | 1 | 13 | 21 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 2 | 2 |
-| `spikes` | 6 | 14 | 21 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 2 | 2 |
-| `power_curve` | 6 | 14 | 21 | 4 | 1 | 1 | 1 | skipped | skipped | skipped | skipped | skipped |
-| `wind_direction` | 6 | 14 | 21 | 4 | 0 | 0 | skipped | 0 | 0 | 0 | 0 | 0 |
-| `icing` | 1 | 8 | 21 | 4 | 0 | 1 | 0 | skipped | skipped | skipped | skipped | skipped |
-| `energy_counter` | 2 | 0 | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped |
-| `energy_power` | 0 | 0 | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped |
-| `units` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+| Check | kelmarsh_2019 | penmanshiel_2020 | hill_of_towie_2021 | la_haute_borne | la_haute_borne_as_stamped | care_A | care_B | care_C | pvdaq_34 | pvdaq_1276 | pvdaq_1278 | pvdaq_35 | pvdaq_34_raw_units |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `duplicates` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `ordering` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `time_jumps` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `gaps` | 0 | 0 | 21 | 4 | 4 | 1 | 1 | 0 | 2 | 2 | 3 | 2 | 2 |
+| `dst` | 0 | 0 | 0 | skipped | 4 | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped |
+| `missing_values` | 6 | 14 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 |
+| `out_of_range` | 5 | 14 | 0 | 3 | 3 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `flatline` | 1 | 13 | 21 | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 2 | 2 |
+| `spikes` | 6 | 14 | 21 | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 2 | 2 |
+| `power_curve` | 6 | 14 | 21 | 4 | 4 | 1 | 1 | 1 | skipped | skipped | skipped | skipped | skipped |
+| `wind_direction` | 6 | 14 | 21 | 4 | 4 | 0 | 0 | skipped | 0 | 0 | 0 | 0 | 0 |
+| `icing` | 1 | 8 | 21 | 4 | 4 | 0 | 1 | 0 | skipped | skipped | skipped | skipped | skipped |
+| `energy_counter` | 2 | 0 | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped |
+| `energy_power` | 0 | 0 | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped | skipped |
+| `units` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 
 What the checks found on real data:
 
 - **A unit switch is found where the dataset documents it.** PVDAQ's power channels change from hectowatts to watts in August 2018. Read as hectowatts
   throughout, system 34 shows a step of a factor of 98 in power over irradiance on 2018-08-05; the loader finds the same switch from the data
-  (`p_ac, p_dc: hectowatts to kW (x0.1) until 2018-08-04 20:00 UTC, watts to kW (x0.001) from then on`), and the check on the corrected table reports 0 switches.
+  (`p_ac, p_dc: hectowatts to kW (x0.1) before 2018-08-04 19:45 UTC (start of the first interval in watts), watts to kW (x0.001) from then on; 99th percentile of the AC power of the inverters after conversion: 0.73 of the array's kWp`), and the check on the corrected table reports 0 switches.
 - **North offsets.** On Hill of Towie the nacelle position of 12 of 21 turbines is more than 10 degrees off the fleet mean direction;
   the largest, T16, is 84.7 degrees off. On Kelmarsh the largest offset is 3.8 degrees.
-- **A real daylight saving artefact.** La Haute Borne stamps its data with the UTC offset, so the time is exact, but at both autumn changes (2014-10-26 and 2015-10-25) one hour is missing in UTC (00:00 to 01:00, the first occurrence of
-  the repeated local hour): the source holds only one of the two repeated hours. The `dst` check, run against Europe/Paris, finds 2 of 4 changes on every turbine.
+- **The La Haute Borne clock is not what its stamps say.** The printed UTC offsets follow French daylight saving time, but the series does not. Each turbine has 105,120 rows, exactly
+  730 complete days of ten-minute intervals; the hour of the daily temperature maximum is the same on the wall clock on both sides of the spring and autumn changes (15.2, 14.8, 14.9, 14.7) but moves by about an
+  hour in "UTC" as stamped (14.2, 12.8, 12.9, 13.7); at the two spring changes 12 stamps per turbine occur twice and at the autumn change one hour is missing. That is a clock that ran on standard
+  time (UTC+1) all year and was labelled as if it had followed daylight saving time. The loader reads it that way by default (`time="reconstructed"`). Two limits: UTC+1 is an inference (it is the
+  offset the file prints in winter, and the data cannot tell it from UTC+0), and the repeated spring stamps cannot be assigned to their hours (the continuity of temperature, wind speed, power
+  and yaw gives a clear winner in 0 of 8 cases, and the file order is no guide), so 96 rows are dropped and the metadata say so. With `time="as_stamped"` the
+  `dst` check, run against Europe/Paris, finds 2 of 4 changes on every turbine (the demonstration table).
+- **CARE's power is not in kW.** The feature descriptions say kW and kvar, but the benchmark scales power-related data for anonymisation (Zenodo description of the record) and publishes no
+  rated power. The loader stores active and reactive power as `p_ac_rel` and `q_ac_rel`, dimensionless, never as kW; the wind-up and OpenOA converters refuse such a table, and the checks that
+  need a power use it as it is without a rating.
+- **PVDAQ's unit is decided without a step too.** A record entirely after the switch (or a short window around it) has no step in the power over irradiance. The loader then compares the daily 99th
+  percentile of power, read as hectowatts, with the array's rating: more than five times the rating means watts. This was run on windows before, around and after the switch for all four systems.
 - **Time elsewhere.** The three UK farms are checked against Europe/London (UTC time stamps, no artefact found); for the others the check does not apply (fixed offset or anonymised time).
   The table above shows what each dataset triggered.
 
@@ -100,8 +117,8 @@ which tests the code tables:
 
 | Dataset | Code table | Events | Events with a code in the table | Stop events | Compared with the operator's category | Agreement | Time-based availability, IEC operational / OEM style |
 |---|---|---:|---:|---:|---:|---:|---|
-| kelmarsh_2019 | `senvion_mm` | 59,313 | 100.0 % | 673 | 673 | 100.0 % | 99.5 % / 99.8 % |
-| penmanshiel_2020 | `senvion_mm` | 158,509 | 100.0 % | 3,267 | 3,264 | 100.0 % | 97.8 % / 98.1 % |
+| kelmarsh_2019 | `senvion_mm` | 59,313 | 100.0 % | 673 | 673 | 100.0 % | 99.6 % / 99.8 % |
+| penmanshiel_2020 | `senvion_mm` | 158,509 | 100.0 % | 3,267 | 3,264 | 100.0 % | 98.8 % / 99.2 % |
 | hill_of_towie_2021 | `siemens_swt_hot` | 798,406 | 94.9 % | 4,034 | - | no operator category | not computed |
 
 On Kelmarsh the Senvion table agrees with the operator's category on 100.0 % of 673 compared stop events, on Penmanshiel on 100.0 % of 3,264. **This is a
@@ -121,6 +138,7 @@ computed for it. The availability figures of the Greenbyte farms are what the op
 | OpenOA 3 | Kelmarsh 2019, turbines T01 to T03, 157,680 rows | `PlantData.scada` | 1.2e-04 |
 | | | `power_curve.IEC` | 1.6e-02 kW |
 | pvlib 0.16 | PVDAQ system 34, 2017, 35,040 intervals | PVWatts `ModelChain` (modelled plant up to 141 kW) | 8.3e-08 relative in daylight (6.7e-03 W) |
+| | | cell temperature from the measured `module_temperature` against SAPM's module-to-cell formula called directly | 3.2e-06 K; the measured module temperature moves the cell temperature by a median of 18.0 K (daylight) against the ambient-air model |
 
 OpenOA's default power-curve bins start at 0 (centres 0.25, 0.75, ...) while the bins of IEC 61400-12-1 and res-asset-kpi are centred on multiples of 0.5; with the bins aligned
 the two implementations agree to 0.0e+00 kW, with OpenOA's default bins the curves differ by up to 4.8 % of rated power. The converters do not hide that: it is
@@ -197,11 +215,15 @@ the import with a message that names it. [`schema/mapping.schema.json`](https://
 
 - The wind-up check uses wind-up 0.5.1 (beta; its v1 input is not fixed) and the filter stage with a minimal configuration; the analysis periods in `windup_config` are placeholders
   and the pitch and generator speed ranges are estimated from the data. A full wind-up assessment was not run.
+- The hand-built inputs of the parity checks are written independently of the library's mapping code, but from the same documentation: they would not catch a column or unit that both
+  readings misunderstand. The loaders are tested in CI on slices of the real files (Kelmarsh, Hill of Towie, PVDAQ, La Haute Borne; CARE is not sliced because of its share-alike licence)
+  and on synthetic files in the original formats; the numbers of this README come from the full files, which CI does not have.
 - The code tables are written from the public code texts of the open datasets; they are not OEM documents. IEC categories are the top levels of the information model, not the whole tree.
 - The quality thresholds are defaults chosen to be conservative; they were tuned on these datasets and are not validated on others. Findings describe data, not the condition of a sensor.
 - CARE's sensor names are anonymised; the sensor tables of farms A, B and C cover the signals listed in `loaders/care.py` and each entry is checked against the benchmark's own
   description when loading. CARE time stamps are anonymised, so checks that need real time do not apply to it.
 - Hill of Towie's SCADA tables used here have no absolute wind direction; only the nacelle position is mapped.
+- La Haute Borne's time: see above; the UTC+1 reading is an inference.
 - The schema has been applied to open datasets only. Operator exports from other vendors need their own loader (a loader is a column mapping, a unit table and a time convention).
 - `pse-opendata` is not used: the schema holds SCADA, and no PSE data are needed for it.
 
@@ -220,4 +242,4 @@ package's code), NREL PVDAQ (CC BY 4.0, doi 10.25984/1846021). The code is MIT l
 
 ## Citation
 
-Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). DOI of all versions: [10.5281/zenodo.24004701](https://doi.org/10.5281/zenodo.24004701); version 0.1.0: [10.5281/zenodo.24004702](https://doi.org/10.5281/zenodo.24004702).
+Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). DOI of all versions: [10.5281/zenodo.24004701](https://doi.org/10.5281/zenodo.24004701).

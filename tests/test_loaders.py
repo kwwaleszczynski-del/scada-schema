@@ -160,8 +160,10 @@ def test_care_loader(tmp_path):
     t = L.table
     assert validate(t, L.meta).warnings and validate(t, L.meta).ok
     assert set(t.device_id) == {"A007"} and L.meta.source.license == "CC-BY-SA-4.0"
-    assert t["p_ac"].iloc[0] == pytest.approx(list(sensors).index("power_30"))
-    assert "p_ac__max" in t.columns and "p_ac__std" not in t.columns
+    assert t["p_ac_rel"].iloc[0] == pytest.approx(list(sensors).index("power_30"))
+    assert "p_ac" not in t.columns and "q_ac" not in t.columns  # scaled by the source: not kW
+    assert any("NOT converted to kW" in c for c in L.meta.conversions)
+    assert "p_ac_rel__max" in t.columns and "p_ac_rel__std" not in t.columns
     assert list(t["status_code"].iloc[[0, 12, 17]]) == ["0", "4", "2"]
     assert list(t["iec_category"].iloc[[0, 12, 17]]) == ["full_performance", "forced_outage", "technical_standby"]
     assert list(t["x_train_test"].iloc[[0, 19]]) == ["train", "prediction"]
@@ -275,25 +277,127 @@ def test_kelmarsh_fetch_selects_years(tmp_path, monkeypatch):
 
 # ----------------------------------------------------------------------------------------------- La Haute Borne
 
-def test_la_haute_borne_loader_reads_utc_offsets_exactly(tmp_path):
+def _lhb_zip(path, names=("R80711", "R80721")):
+    """Two days around each daylight saving change from a clock that ran on UTC+1 all year, labelled as France does: the way the real file looks."""
     from scada_schema.loaders import la_haute_borne
 
-    rows = []
-    for name in ("R80721", "R80711"):
-        for stamp in ("2014-10-26T01:50:00+02:00", "2014-10-26T02:00:00+02:00", "2014-10-26T02:00:00+01:00", "2014-10-26T02:10:00+01:00"):
-            rows.append(f"{name},{stamp},-1.0,500.0,7.0,0.5,10.0,180.0,182.0")
-    scada = "Wind_turbine_name,Date_time,Ba_avg,P_avg,Ws_avg,Va_avg,Ot_avg,Ya_avg,Wa_avg\n" + "\n".join(rows) + "\n"
+    wall = pd.date_range("2014-03-28 12:00", "2014-10-28 12:00", freq="10min")  # naive wall clock, constant UTC+1
+    local = wall.tz_localize("Europe/Paris", ambiguous=np.zeros(len(wall), dtype=bool), nonexistent=pd.Timedelta("1h"))  # 02:xx becomes 03:xx; the autumn hour is read as standard time
+    stamp = [x.strftime("%Y-%m-%dT%H:%M:%S") + x.strftime("%z")[:3] + ":" + x.strftime("%z")[3:] for x in local]
+    rows = [(name, st, 100.0 + k % 7, 7.0, 0.5, 10.0 + 0.001 * k, 180.0, -1.0, 182.0) for name in names for k, st in enumerate(stamp)]
+    scada = "Wind_turbine_name,Date_time,P_avg,Ws_avg,Va_avg,Ot_avg,Ya_avg,Ba_avg,Wa_avg\n" + "\n".join(",".join(str(x) for x in r) for r in rows) + "\n"
     asset = ("Wind_turbine_name,Latitude,Longitude,elevation_m,Rated_power,Hub_height_m,Rotor_diameter_m,Manufacturer,Model\n"
              "R80711,48.45,5.58,411,2050,80,82,Senvion,MM82\nR80721,48.44,5.58,411,2050,80,82,Senvion,MM82\n")
+    with zipfile.ZipFile(path / "la_haute_borne.zip", "w") as z:
+        z.writestr(la_haute_borne.SCADA_FILE, scada)
+        z.writestr(la_haute_borne.ASSET_FILE, asset)
+
+
+def test_la_haute_borne_clock_on_standard_time_is_reconstructed(tmp_path):
+    from scada_schema.loaders import la_haute_borne
+
+    _lhb_zip(tmp_path)
+    L = la_haute_borne.load(tmp_path)
+    t = L.table[L.table.device_id == "T01"]["timestamp"]
+    # the stamps repeat 03:00-03:50 at the spring change (6 stamps x 2 copies) and lack an hour in the autumn: the labelling of a fixed clock
+    assert validate(L.table, L.meta).ok and not L.table.duplicated(["device_id", "timestamp"]).any()
+    assert L.removed == {"duplicate_rows": 0, "ambiguous_time_rows": 24}  # 12 rows per turbine: the two copies cannot be told apart
+    # the wall clock 12:00 on 2014-03-28 is 11:00 UTC; the series is a 10-minute grid with exactly the two-hour gap of the ambiguous rows at the spring change
+    assert t.min() == pd.Timestamp("2014-03-28 11:00", tz="UTC")
+    steps = t.diff().dropna()
+    assert list(steps[steps != pd.Timedelta("10min")]) == [pd.Timedelta("2h10min")]  # exactly one gap: the ambiguous hours of the spring change
+    spring = t[(t >= "2014-03-30 00:50") & (t < "2014-03-30 03:10")]
+    assert pd.Timestamp("2014-03-30 01:00", tz="UTC") not in set(spring) and pd.Timestamp("2014-03-30 02:00", tz="UTC") not in set(spring)
+    assert pd.Timestamp("2014-03-30 03:00", tz="UTC") in set(spring)
+    assert L.meta.source_timezone == "Etc/GMT-1" and any("UTC+1 all year" in c for c in L.meta.conversions) and any("dropped" in c for c in L.meta.conversions)
+    assert [d.id for d in L.meta.devices] == ["T01", "T02"] and L.meta.device("T01").rated_kw == 2050
+    assert L.table["wind_dir_rel"].iloc[0] == pytest.approx(0.5) and L.table["pitch"].iloc[0] == pytest.approx(-1.0)
+
+
+def test_la_haute_borne_as_stamped_keeps_the_printed_offsets_and_counts_what_it_drops(tmp_path):
+    from scada_schema.loaders import la_haute_borne
+
+    _lhb_zip(tmp_path)
+    L = la_haute_borne.load(tmp_path, time="as_stamped")
+    assert L.removed["duplicate_rows"] == 12 and L.meta.source_timezone == "Europe/Paris" and "not reconstructed" in L.meta.conversions[0]
+    assert any("12 rows with a repeated" in c for c in L.meta.conversions)
+    # as stamped, the autumn change lacks the hour 00:00 to 01:00 UTC (the printed offsets jump)
+    t = L.table[L.table.device_id == "T01"]["timestamp"]
+    assert pd.Timestamp("2014-10-26 00:30", tz="UTC") not in set(t) and pd.Timestamp("2014-10-26 02:30", tz="UTC") in set(t)
+    with pytest.raises(ValueError, match="time must be"):
+        la_haute_borne.load(tmp_path, time="whatever")
+    with pytest.raises(FileNotFoundError, match="fetch the data first"):
+        la_haute_borne.load(tmp_path / "nowhere")
+
+
+def test_la_haute_borne_refuses_a_series_that_is_not_a_standard_time_clock(tmp_path):
+    from scada_schema.loaders import la_haute_borne
+
+    # a series that really follows daylight saving time: the spring hour is skipped, not repeated; the fixed-offset reading must not pass
+    wall = pd.date_range("2014-03-29 12:00", periods=6 * 48, freq="10min", tz="Europe/Paris")
+    rows = [("R80711", w.strftime("%Y-%m-%dT%H:%M:%S%z")[:-2] + ":" + w.strftime("%z")[-2:], 1, 2, 3, 4, 5, 6, 7) for w in wall]
+    scada = "Wind_turbine_name,Date_time,P_avg,Ws_avg,Va_avg,Ot_avg,Ya_avg,Ba_avg,Wa_avg\n" + "\n".join(",".join(str(x) for x in r) for r in rows) + "\n"
+    asset = "Wind_turbine_name,Latitude,Longitude,elevation_m,Rated_power,Hub_height_m,Rotor_diameter_m,Manufacturer,Model\nR80711,48.45,5.58,411,2050,80,82,Senvion,MM82\n"
     with zipfile.ZipFile(tmp_path / "la_haute_borne.zip", "w") as z:
         z.writestr(la_haute_borne.SCADA_FILE, scada)
         z.writestr(la_haute_borne.ASSET_FILE, asset)
-    L = la_haute_borne.load(tmp_path)
-    t = L.table[L.table.device_id == "T01"]["timestamp"]
-    # the repeated hour 02:00-03:00 of the autumn change is told apart by the offset: 00:00Z and 01:00Z
-    assert sorted(t.dt.strftime("%H:%M")) == ["00:00", "01:00", "01:10", "23:50"]
-    assert validate(L.table, L.meta).ok and [d.id for d in L.meta.devices] == ["T01", "T02"]
-    assert L.meta.device("T01").rated_kw == 2050 and L.meta.device("T01").lat == pytest.approx(48.45)  # R80711 is the first name
-    assert L.table["wind_dir_rel"].iloc[0] == pytest.approx(0.5) and L.table["pitch"].iloc[0] == pytest.approx(-1.0)
-    with pytest.raises(FileNotFoundError, match="fetch the data first"):
-        la_haute_borne.load(tmp_path / "nowhere")
+    with pytest.raises(ValueError, match="does not give a 10-minute grid"):
+        la_haute_borne.load(tmp_path)
+    assert len(la_haute_borne.load(tmp_path, time="as_stamped").table) == 6 * 48
+
+
+
+# ----------------------------------------------------------------------------------------------- PVDAQ units without a step in the record
+
+def _pvdaq_files(path, days, switch=None, scale_after=1000.0):
+    """Daily files for a system 34 style array of 146.6 kWp (peak about 0.15 kW per W/m2 x 900 = 135 kW); hectowatts before ``switch``, watts after."""
+    d = path / "system_34"
+    d.mkdir(parents=True, exist_ok=True)
+    rng = np.random.default_rng(3)
+    for day in days:
+        t = pd.date_range(day, periods=96, freq="15min")
+        h = t.hour + t.minute / 60
+        poa = np.clip(900 * np.sin((h - 5.5) / 14 * np.pi), 0, None) * (1 + rng.normal(0, .01, 96))
+        kw = 0.15 * poa
+        scale = 10.0 if (switch is None or day < pd.Timestamp(switch)) else scale_after
+        pd.DataFrame({"measured_on": t.strftime("%Y-%m-%d %H:%M:%S"), "ac_power_hw__2695": kw * scale, "dc_power_hw__2694": kw * scale * 1.03,
+                      "poa_irradiance__2679": poa, "inverter_error_code__2690": 0.0, "system_id": 34}).to_csv(d / f"system_34__date_{day:%Y_%m_%d}.csv", index=False)
+
+
+def _peak(load):
+    inv = load.table[load.table.device_id == "INV"]
+    return float(inv["p_ac"].quantile(0.99))
+
+
+def test_pvdaq_record_entirely_in_watts_is_recognised_by_its_level(tmp_path):
+    _pvdaq_files(tmp_path, pd.date_range("2019-03-01", "2019-03-20"), switch="2019-01-01")  # watts throughout: no step anywhere
+    L = pvdaq.load(tmp_path, system=34)
+    assert 100 < _peak(L) < 150  # kW, not 100 times that
+    note = L.meta.conversions[0]
+    assert "watts to kW (x0.001) for the whole record" in note and "of the array's kWp" in note
+
+
+def test_pvdaq_short_window_around_the_switch(tmp_path):
+    _pvdaq_files(tmp_path, pd.date_range("2018-07-29", "2018-08-10"), switch="2018-08-04")  # 13 days: too short for a step
+    L = pvdaq.load(tmp_path, system=34)
+    inv = L.table[L.table.device_id == "INV"].set_index("timestamp")
+    before = inv.loc["2018-07-30 18:00":"2018-07-30 22:00", "p_ac"].max()
+    after = inv.loc["2018-08-08 18:00":"2018-08-08 22:00", "p_ac"].max()
+    assert before == pytest.approx(after, rel=0.05) and 100 < after < 150
+    assert "hectowatts to kW (x0.1) before 2018-08-04" in L.meta.conversions[0]
+
+
+def test_pvdaq_record_entirely_in_hectowatts_stays_so(tmp_path):
+    _pvdaq_files(tmp_path, pd.date_range("2017-05-01", "2017-05-20"))
+    L = pvdaq.load(tmp_path, system=34)
+    assert 100 < _peak(L) < 150 and "no change to watts" in L.meta.conversions[0]
+
+
+def test_pvdaq_level_check_needs_no_irradiance_for_the_decision_on_a_whole_record():
+    t = pd.date_range("2019-03-01", periods=96 * 10, freq="15min", tz="UTC")
+    h = t.hour + t.minute / 60
+    watts = pd.Series(np.clip(135_000 * np.sin((h - 5.5) / 14 * np.pi), 0, None), index=t)
+    poa = pd.Series(np.clip(900 * np.sin((h - 5.5) / 14 * np.pi), 0, None), index=t)
+    assert pvdaq.detect_power_unit_switch(watts, poa, 146.6) == t.min()  # all watts
+    assert pvdaq.detect_power_unit_switch(watts / 100, poa, 146.6) is None  # hectowatts
+    assert pvdaq.detect_power_unit_switch(watts / 100, poa) is None  # without the rating: read as hectowatts

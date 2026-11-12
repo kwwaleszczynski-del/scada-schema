@@ -38,6 +38,7 @@ class Loaded:
     table: pd.DataFrame
     meta: DatasetMeta
     events: pd.DataFrame = field(default_factory=lambda: empty_events())
+    removed: dict = field(default_factory=dict)  # rows the loader removed before the table was built, e.g. {"duplicate_rows": 3}
 
 
 def empty_events() -> pd.DataFrame:

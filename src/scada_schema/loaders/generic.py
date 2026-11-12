@@ -249,9 +249,9 @@ def import_table(spec: ImportSpec | str | Path | dict, validate_result: bool = T
         if absent:
             raise ValueError(f"{path.name}: columns {absent} named in the mapping are not in the file; the file has {list(raw.columns)[:15]}")
         fixed = _device_of(path, spec)
-        dev_series = raw[spec.device_column].astype(str).str.strip() if spec.device_column else None
         if spec.device_column and spec.device_column not in raw.columns:
-            raise ValueError(f"{path.name}: device column {spec.device_column!r} not in the file")
+            raise ValueError(f"{path.name}: device column {spec.device_column!r} not in the file; the file has {list(raw.columns)[:15]}")
+        dev_series = raw[spec.device_column].astype(str).str.strip() if spec.device_column else None
         t = _timestamps(raw, spec.timestamp, dev_series if dev_series is not None else None)
         t = t - shift
         if spec.timestamp.round:
@@ -284,7 +284,7 @@ def import_table(spec: ImportSpec | str | Path | dict, validate_result: bool = T
     if spec.code_table and "status_code" in table.columns:
         from scada_schema.states import map_codes
 
-        table["iec_category"] = map_codes(table["status_code"], spec.code_table)
+        table["iec_category"] = map_codes(table["status_code"], spec.code_table, uncategorised="full_performance")
     table = finalise(table)
     conv = []
     for col, c in spec.columns.items():
@@ -300,7 +300,7 @@ def import_table(spec: ImportSpec | str | Path | dict, validate_result: bool = T
     if n_dup:
         conv.append(f"{n_dup} duplicated (device, time) rows dropped, first kept")
     if spec.code_table:
-        conv.append(f"iec_category from the code table {spec.code_table}")
+        conv.append(f"iec_category from the code table {spec.code_table}: codes the table lists without a category (information, warnings) read as full_performance, codes not in the table stay empty")
     dtype = spec.default_device_type or ("turbine" if spec.profile == "wind" else "inverter")
     ids = sorted(table["device_id"].unique())
     devices = []

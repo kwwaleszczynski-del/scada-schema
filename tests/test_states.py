@@ -120,3 +120,26 @@ def test_availability_matches_res_asset_kpi_directly():
 
 def test_module_exports():
     assert {"project_events", "attach_states", "map_codes", "availability_from_table"} <= set(states.__all__)
+
+
+def test_uncategorised_codes_of_the_table_can_read_as_operating():
+    got = map_codes(pd.Series(["0", "21", "99999"]), "senvion_mm", uncategorised="full_performance")
+    assert list(got) == ["full_performance", "forced_outage", None]  # 0 "System OK" has no category; 99999 is not in the table
+    assert list(map_codes(pd.Series(["0"]), "senvion_mm")) == [None]
+
+
+def test_rows_without_a_measurement_are_no_info_not_operating():
+    t = grid(n=6)
+    t["p_ac"] = [1.0, 1.0, np.nan, np.nan, 1.0, 1.0]
+    t["wind_speed"] = [5.0, 5.0, np.nan, 5.0, 5.0, 5.0]
+    ev = pd.DataFrame({"device_id": "T01", "start": pd.to_datetime(["2021-01-01 00:40"], utc=True), "end": pd.to_datetime(["2021-01-01 00:50"], utc=True),
+                       "category": ["forced_outage"], "code": ["1"]})
+    got = categories_for_intervals(ev, t, "10min")
+    assert list(got) == ["full_performance", "full_performance", "no_info", "full_performance", "forced_outage", "full_performance"]
+
+
+def test_availability_leaves_out_intervals_without_a_category(caplog):
+    cat = np.array(["full_performance"] * 8 + [None] * 2, dtype=object)
+    df = pd.DataFrame({"timestamp": pd.date_range("2021-01-01", periods=10, freq="10min", tz="UTC"), "device_id": "T01", "iec_category": cat})
+    a = availability_from_table(df, "10min", "iec_operational")
+    assert a.time == 1.0 and "left out" in caplog.text  # a healthy turbine is not an outage because the state is unknown

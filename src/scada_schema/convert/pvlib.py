@@ -3,7 +3,7 @@
 pvlib works with instants and its own column names. The converter
 
 * takes the weather from the met device (``met`` or ``plant``) of the table: ``ghi``, ``dni``, ``dhi``, ``poa_global`` (from ``poa``),
-  ``temp_air`` (from ``t_amb``), ``wind_speed``, ``temp_module`` (from ``t_module``, the measured back-of-module value);
+  ``temp_air`` (from ``t_amb``), ``wind_speed``, ``module_temperature`` (from ``t_module``, the measured back-of-module value, the name pvlib's ModelChain reads: with a SAPM temperature model it replaces the cell temperature computed from the ambient air);
 * indexes it by the **centre of the interval** (``at="center"``, the right instant for a mean over the interval; ``"start"`` and
   ``"end"`` are also available) in UTC;
 * gives the location and the array geometry of an inverter (``surface_tilt``, ``surface_azimuth`` clockwise from north, 180 =
@@ -30,7 +30,7 @@ from scada_schema.model import DatasetMeta
 __all__ = ["COLUMN_MAP", "PvlibInputs", "to_pvlib"]
 
 COLUMN_MAP = {"ghi": "ghi", "dni": "dni", "dhi": "dhi", "poa": "poa_global", "t_amb": "temp_air", "wind_speed": "wind_speed",
-              "t_module": "temp_module"}
+              "t_module": "module_temperature"}
 _SHIFT = {"start": 0.0, "center": 0.5, "end": 1.0}
 
 

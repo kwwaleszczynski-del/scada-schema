@@ -95,6 +95,9 @@ SIGNALS: dict[str, Signal] = dict(
            -20_000, 30_000, True),
         _s("q_ac", "kvar", "mean", "reactive power, positive = export (over-excited)", _WP, ("turbine", "inverter", "meter", "plant"),
            -20_000, 20_000, True),
+        _s("p_ac_rel", "1", "mean", "active power as a number scaled by the source (anonymised, not kW; the rated power is not published)", (WIND,), ("turbine",),
+           -5.0, 5.0, True),
+        _s("q_ac_rel", "1", "mean", "reactive power as a number scaled by the source (anonymised, not kvar)", (WIND,), ("turbine",), -5.0, 5.0, True),
         _s("power_factor", "1", "mean", "displacement power factor, signed like q_ac", _WP, ("turbine", "inverter", "meter", "plant"),
            -1.0, 1.0, True),
         _s("e_export", "kWh", "sum", "energy exported during the interval", _WP, ("turbine", "inverter", "meter", "plant"),
@@ -109,7 +112,7 @@ SIGNALS: dict[str, Signal] = dict(
         _s("v_dc", "V", "mean", "DC voltage", _P, ("inverter", "string"), -50, 2_000, True),
         _s("i_dc", "A", "mean", "DC current", _P, ("inverter", "string"), -50, 20_000, True),
         # ------------------------------------------------------------------ wind turbine mechanics
-        _s("wind_speed", "m/s", "mean", "wind speed at the nacelle anemometer", _W, _TUR + _MET, 0, 80, True),
+        _s("wind_speed", "m/s", "mean", "wind speed at the nacelle anemometer (wind) or the met station (wind and PV)", _WP, _TUR + _MET, 0, 80, True),
         _s("wind_speed_2", "m/s", "mean", "wind speed of the second (redundant) anemometer", _W, _TUR, 0, 80, True),
         _s("wind_dir", "deg", "circular", "wind direction, from, clockwise from true north", _WP, _TUR + _MET, 0, 360, True),
         _s("wind_dir_rel", "deg", "circular", "wind vane reading relative to the nacelle, positive = wind from the right", _W, _TUR,

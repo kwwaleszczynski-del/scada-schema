@@ -79,6 +79,8 @@ def to_windup_scada(df: pd.DataFrame, meta: DatasetMeta, turbines: list[str] | N
     if meta.profile != "wind":
         raise ValueError("wind-up needs a wind table")
     miss = [c for c in REQUIRED if c not in df.columns or not df[c].notna().any()]
+    if "p_ac" in miss and "p_ac_rel" in df.columns:
+        raise ValueError("wind-up needs the active power in kW (p_ac); this table has only p_ac_rel, a number scaled by the source, and the rated power is not known")
     if miss:
         raise ValueError(f"wind-up needs {list(REQUIRED)}; missing {miss}"
                          + (" (rotor_speed is not generator speed; supply gen_speed)" if "gen_speed" in miss else ""))
@@ -110,7 +112,7 @@ def windup_turbine_types(df: pd.DataFrame, meta: DatasetMeta, turbine_type: str,
 
     The rated power and rotor diameter come from the first turbine of the metadata. ``normal_operation_pitch_range`` and
     ``normal_operation_genrpm_range`` are **estimates**: the 1st to 99th percentile of pitch and generator speed in the
-    intervals above 90 % of rated power below rated wind. Check them against the turbine's documentation before using
+    intervals above 10 % of rated power. Check them against the turbine's documentation before using
     them in an analysis.
     """
     turbines = [d for d in meta.devices if d.type == "turbine"]
