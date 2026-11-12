@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/).
 
-## [0.1.1] - unreleased
+## [0.1.1] - 2026-11-12
 
 Corrections found by an independent review of 0.1.0. Several numbers in the README and on the project page change because of them (the table counts, the availability
 figures, the La Haute Borne findings); the README is regenerated from `results/study.json`.

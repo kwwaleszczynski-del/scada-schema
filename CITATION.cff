@@ -11,6 +11,7 @@ authors:
   - family-names: "Waleszczyński"
     given-names: "Konrad"
 version: 0.1.1
+date-released: "2026-11-12"
 doi: 10.5281/zenodo.24004701
 identifiers:
   - type: doi
