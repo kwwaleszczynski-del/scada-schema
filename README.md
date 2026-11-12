@@ -242,4 +242,4 @@ package's code), NREL PVDAQ (CC BY 4.0, doi 10.25984/1846021). The code is MIT l
 
 ## Citation
 
-Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). DOI of all versions: [10.5281/zenodo.24004701](https://doi.org/10.5281/zenodo.24004701).
+Cite the software through [CITATION.cff](https://github.com/kwwaleszczynski-del/scada-schema/blob/main/CITATION.cff) (GitHub's "Cite this repository" reads it). DOI of all versions: [10.5281/zenodo.24004701](https://doi.org/10.5281/zenodo.24004701); version 0.1.1: [10.5281/zenodo.24164280](https://doi.org/10.5281/zenodo.24164280).

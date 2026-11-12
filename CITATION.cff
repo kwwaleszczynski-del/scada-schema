@@ -17,6 +17,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.24004701
     description: "All versions (concept DOI)"
+  - type: doi
+    value: 10.5281/zenodo.24164280
+    description: "Version 0.1.1"
 license: MIT
 repository-code: "https://github.com/kwwaleszczynski-del/scada-schema"
 url: "https://kwwaleszczynski-del.github.io/scada-schema/"
